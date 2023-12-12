@@ -1,0 +1,23 @@
+@import 'base'
+
+[data-theme='light']
+  body
+    background-color: $light
+    color: $dark
+
+  .navbar
+    background-color: $light
+    color: $dark
+
+    .navbar-item, .footer-link
+      color: $dark
+
+      &:hover
+        background-color: lighten($light, 10%)
+
+  .container
+    color: $dark
+
+  .button.is-light
+    background-color: $orange
+    color: $dark

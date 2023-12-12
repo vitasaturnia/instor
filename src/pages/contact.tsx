@@ -1,7 +1,5 @@
-// ContactUsPage.jsx
-import React from 'react';
-import ContactForm from './ContactForm';
-import Newsletter from './Newsletter';
+import ContactForm from '../components/ContactForm';
+import Newsletter from '../components/Newsletter';
 
 const ContactUsPage = () => {
     return (

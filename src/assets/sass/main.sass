@@ -1,0 +1,42 @@
+// File: main.sass
+
+// Import Bulma styles
+@import '../../../node_modules/bulma'
+
+// Import your other styles
+@import 'colors'
+@import 'navbar'
+@import 'footer'
+@import 'darkmode'
+@import 'typography'
+@import 'theme'
+@import 'newsletter'
+@import 'converter'
+
+
+
+// Content area styles
+.container
+  color: white
+
+// Orange accents
+.button.is-light
+  background-color: $orange
+  color: $dark
+
+
+@media screen and (max-width: 1023px)
+  #navBar
+    text-align: center !important
+
+    .navbar-item
+      display: block !important
+      text-align: center !important
+
+    .navbar-end
+      text-align: center !important
+
+    .navbar-item, .buttons
+      display: flex !important
+      justify-content: center !important
+

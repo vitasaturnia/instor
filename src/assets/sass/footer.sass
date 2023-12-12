@@ -1,0 +1,65 @@
+@import 'base'
+
+.footer
+  &.has-background-dark
+    background-color: $dark
+    color: white
+
+    .footer-link
+      color: white
+
+      &:hover
+        background-color: darken($dark, 10%)
+
+  &.has-background-light
+    background-color: $light
+    color: $dark
+
+    .footer-link
+      color: $dark
+
+      &:hover
+        background-color: lighten($light, 10%)
+
+  // Adjust the spacing for light mode as needed
+  .footer-links
+    .footer-link
+      margin: 0 15px
+
+  .footer-icons, .footer-links
+    display: flex
+    justify-content: space-evenly
+
+
+.footer
+  padding-top: 3em
+  padding-bottom: 3em
+
+.footer-links
+  list-style: none
+  display: flex
+  justify-content: center
+  padding: 0
+
+  .footer-link
+    margin: 0 15px
+
+.footer
+  background-color: $dark
+  color: white
+
+  .navbar-item, .footer-link
+    color: white
+
+    &:hover
+      background-color: darken($dark, 10%)
+
+
+.footer-icons, .footer-links
+  display: flex
+  justify-content: space-evenly
+  display: flex
+  justify-content: space-evenly
+
+div.field.is-grouped
+  justify-content: center!important

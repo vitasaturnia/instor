@@ -1,0 +1,59 @@
+@import 'base'
+
+
+// Dark mode
+[data-theme='dark']
+  // Background color
+  body
+    background-color: $dark
+    color: white
+
+.dark-mode-toggler
+  display: flex
+  align-items: center
+
+  cursor: pointer
+
+  .toggle-icon
+    font-size: 2em
+    // Adjust icon size as needed
+    transition: color 0.3s ease
+  // Smooth color transition
+
+  &.dark
+    .toggle-icon
+      color: #c0c0c0
+  // Dark mode icon color
+
+  &.light
+    .toggle-icon
+      color: #FFA500
+// Light mode icon color
+
+
+// Light mode
+[data-theme='light']
+  body
+    background-color: $light
+    color: $dark
+
+  .navbar
+    background-color: $light
+    color: $dark
+
+    .navbar-item, .footer-link
+      color: $dark
+
+      &:hover
+        background-color: lighten($light, 10%)
+
+  .container
+    color: $dark
+
+  .button.is-light
+    background-color: $orange
+    color: $dark
+
+
+
+

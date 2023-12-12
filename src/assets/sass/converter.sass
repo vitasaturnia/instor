@@ -1,0 +1,70 @@
+// styles/converter.sass
+@import 'bulma/bulma.sass';
+
+#youtubeDownloader
+  max-width: 600px
+  margin: auto
+  padding: 20px
+  background-color: $dark
+  color: white
+  border-radius: 10px
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3)
+
+  h1
+    font-size: 2rem
+    margin-bottom: 20px
+
+  input, button
+    width: 100%
+    padding: 10px
+    margin-bottom: 20px
+    border: 1px solid $light
+    border-radius: 5px
+    background-color: $dark
+    color: white
+
+  button
+    background-color: $orange
+    color: white
+    cursor: pointer
+    transition: background-color 0.3s
+
+    &:hover
+      background-color: darken($orange, 10%)
+
+  .download-link
+    margin-top: 20px
+    font-size: 1.2rem
+    color: $orange
+    text-decoration: underline
+
+  // Dark mode support
+  &.is-light
+    background-color: $light
+    color: $dark
+
+    input, button
+      background-color: $light
+      color: $dark
+
+  // Font Awesome loader
+  .loader
+    margin-top: 20px
+
+  // Output format options
+  .output-options
+    display: flex
+    justify-content: space-around
+    margin-top: 20px
+
+    label
+      cursor: pointer
+      font-size: 1rem
+      color: $dark
+
+      input[type="radio"]
+        display: none
+
+      input[type="radio"]:checked + span
+        color: $orange
+        font-weight: bold

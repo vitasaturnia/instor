@@ -18,7 +18,7 @@ const FadeInWrapper: React.FC<FadeInWrapperProps> = ({ children }) => {
 // Configuring spring options as a function for better organization
 const getSpringConfig = (): SpringConfig => {
     return {
-        tension: 200,  // Moderately high for a responsive start
+        tension: 300,  // Moderately high for a responsive start
         friction: 10,  // Balanced for a smooth yet noticeable effect
         mass: 1,       // Standard mass for natural movement
     };

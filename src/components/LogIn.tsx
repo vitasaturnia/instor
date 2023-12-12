@@ -1,13 +1,12 @@
-// Login.js
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useFirebase } from './FirebaseContext';
 
-const Login = () => {
+const Login: React.FC = () => {
     const { auth } = useFirebase();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = async (e) => {
+    const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
         try {
             await auth.signInWithEmailAndPassword(email, password);

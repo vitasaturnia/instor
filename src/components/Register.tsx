@@ -1,17 +1,23 @@
-// Register.js
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useFirebase } from './FirebaseContext';
+import React, { useState, FormEvent, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useFirebase } from '../context/firebaseContext';
 
-const Register = () => {
+const Register: React.FC = () => {
     const { auth } = useFirebase();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
-    const handleRegister = async (e) => {
+    useEffect(() => {
+        // Add cleanup logic if needed
+        return () => {
+            // Cleanup logic here
+        };
+    }, []); // Empty dependency array means this effect will only run once, similar to componentDidMount
+
+    const handleRegister = async (e: FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
@@ -20,7 +26,7 @@ const Register = () => {
         }
 
         try {
-            setError('');
+            setError(null);
             await auth.createUserWithEmailAndPassword(email, password);
             navigate('/');
         } catch (error) {

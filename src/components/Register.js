@@ -1,9 +1,11 @@
 // Register.js
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useFirebase } from './FirebaseContext';
 
 const Register = () => {
     const { auth } = useFirebase();
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,6 +22,7 @@ const Register = () => {
         try {
             setError('');
             await auth.createUserWithEmailAndPassword(email, password);
+            navigate('/');
         } catch (error) {
             console.error('Registration error:', error.message);
             setError('Registration failed. Please try again.');
@@ -27,8 +30,8 @@ const Register = () => {
     };
 
     return (
-        <div>
-            <h2>Register</h2>
+        <div className="container">
+            <h2 className="title">Register</h2>
             <form onSubmit={handleRegister}>
                 <div className="field">
                     <label className="label">Email</label>
@@ -39,6 +42,7 @@ const Register = () => {
                             placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            required
                         />
                     </div>
                 </div>
@@ -52,6 +56,7 @@ const Register = () => {
                             placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            required
                         />
                     </div>
                 </div>
@@ -65,6 +70,7 @@ const Register = () => {
                             placeholder="Confirm Password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
                         />
                     </div>
                 </div>

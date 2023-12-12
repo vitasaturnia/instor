@@ -1,5 +1,3 @@
-// App.js
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import Navbar from './Navbar';
@@ -7,7 +5,7 @@ import Index from './pages/index';
 import Converter from './pages/ytconverter';
 import Contact from './pages/contact';
 import Login from './pages/login';
-import Register from './pages/register.tsx';
+import Register from './pages/register';
 
 function App() {
     return (

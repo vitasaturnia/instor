@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './AuthContext';
-import Navbar from './Navbar';
+import { AuthProvider } from './context/AuthContext.tsx';
+import Navbar from './components/Navbar
 import Index from './pages/index';
 import Converter from './pages/ytconverter';
 import Contact from './pages/contact';

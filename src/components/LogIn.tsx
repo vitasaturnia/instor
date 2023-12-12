@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { useFirebase } from "../context/firebaseContext.tsx";
+import { useFirebase } from "../context/firebaseContext";
 
 const Login: React.FC = () => {
     const { auth } = useFirebase();

@@ -1,5 +1,6 @@
+// AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { FirebaseContext } from '../context/firebaseContext';
+import { useFirebase } from '../context/firebaseContext';
 
 interface AuthContextValue {
     user: firebase.User | null;
@@ -8,7 +9,7 @@ interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { auth } = useContext(FirebaseContext)!; // Ensure that FirebaseContext is not null
+    const { auth } = useFirebase();
     const [user, setUser] = useState<firebase.User | null>(null);
 
     useEffect(() => {

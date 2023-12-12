@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { FirebaseContext } from '../context/firebaseContext
+import { FirebaseContext } from '../context/firebaseContext';
 
 interface AuthContextValue {
     user: firebase.User | null;

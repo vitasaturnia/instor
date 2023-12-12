@@ -16,6 +16,7 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@types/firebase": "^3.2.1",
     "axios": "^1.6.2",
+    "bulma": "^0.9.4",
     "firebase": "^10.7.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

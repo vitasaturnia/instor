@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import Navbar from './Navbar';
@@ -7,7 +8,7 @@ import Contact from './pages/contact';
 import Login from './pages/login';
 import Register from './pages/register';
 
-function App() {
+const App: React.FC = () => {
     return (
         <Router>
             <AuthProvider>
@@ -22,6 +23,6 @@ function App() {
             </AuthProvider>
         </Router>
     );
-}
+};
 
 export default App;

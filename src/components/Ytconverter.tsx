@@ -8,7 +8,7 @@ const YouTubeDownloader: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [downloadLink, setDownloadLink] = useState('');
-    const [outputFormat, setOutputFormat] = useState<'mp3' | 'mp4'>('mp3');
+    const [outputFormat, setOutputFormat] = useState<'mp3' | 'mp4' | 'aac' | 'ogg' | 'flac' | 'wav'>('mp3');
     const [error, setError] = useState<string | null>(null);
 
     const loaderAnimation = useSpring({
@@ -22,18 +22,15 @@ const YouTubeDownloader: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            // Step 1: Call Netlify function to interact with YouTube API
             const { data } = await axios.post('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
             });
 
-            // Step 2: Call Netlify function to initiate video downloading and conversion
             const conversionResponse = await axios.post('/.netlify/functions/videoConverter', {
                 videoId: data.videoId,
                 outputFormat,
             });
 
-            // Set download link (replace this with your actual logic)
             setDownloadLink(conversionResponse.data.downloadLink);
         } catch (error) {
             console.error('Error during download:', error);
@@ -79,27 +76,18 @@ const YouTubeDownloader: React.FC = () => {
             </div>
 
             <div className="output-options">
-                <label>
-                    <input
-                        type="radio"
-                        name="outputFormat"
-                        value="mp3"
-                        checked={outputFormat === 'mp3'}
-                        onChange={() => setOutputFormat('mp3')}
-                    />
-                    <span>MP3</span>
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="outputFormat"
-                        value="mp4"
-                        checked={outputFormat === 'mp4'}
-                        onChange={() => setOutputFormat('mp4')}
-                    />
-                    <span>MP4</span>
-                </label>
+                {['mp3', 'mp4', 'aac', 'ogg', 'flac', 'wav'].map((format) => (
+                    <label key={format}>
+                        <input
+                            type="radio"
+                            name="outputFormat"
+                            value={format}
+                            checked={outputFormat === format}
+                            onChange={() => setOutputFormat(format as typeof outputFormat)}
+                        />
+                        <span>{format.toUpperCase()}</span>
+                    </label>
+                ))}
             </div>
         </div>
     );

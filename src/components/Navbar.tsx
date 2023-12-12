@@ -62,7 +62,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
                     <div className="navbar-item">
                         <div className="buttons">
-                            <a className={`button ${darkMode ? 'is-light' : 'is-dark'}`} href="/login">
+                            <a className={`button ${darkMode ? 'is-light' : 'is-dark'}`} href="/app/src/pages/login">
                                 Log in
                             </a>
                         </div>

@@ -1,20 +1,27 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout.tsx";
-import Index from "./pages/index";
-import Converter from "./pages/ytconverter";
-import Contact from "./pages/contact";
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './AuthContext';
+import Navbar from './Navbar';
+import Index from './pages/index';
+import Converter from './pages/ytconverter';
+import Contact from './pages/contact';
+import Login from './pages/login';
+import Register from './pages/register.tsx';
 
 function App() {
     return (
         <Router>
-            <Layout>
+            <AuthProvider>
+                <Navbar />
                 <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/converter" element={<Converter />} />
                     <Route path="/contact" element={<Contact />} />
-
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
                 </Routes>
-            </Layout>
+            </AuthProvider>
         </Router>
     );
 }

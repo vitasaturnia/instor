@@ -11,10 +11,14 @@ const Converter: React.FC = () => {
     const handleConvert = async () => {
         try {
             setError(null);
+
+            // Call your Netlify function with the videoUrl and outputFormat
             const response = await axios.post('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
                 outputFormat,
             });
+
+            // Assuming your Netlify function returns the downloadLink
             setDownloadLink(response.data.downloadLink);
         } catch (err) {
             console.error('Conversion error:', err);

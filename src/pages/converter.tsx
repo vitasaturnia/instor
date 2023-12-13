@@ -1,74 +1,63 @@
+// converter.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 
-interface DownloadResponse {
-    downloadLink: string;
-}
+const Converter: React.FC = () => {
+    const [videoUrl, setVideoUrl] = useState('');
+    const [outputFormat, setOutputFormat] = useState('mp3');
+    const [downloadLink, setDownloadLink] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-const YTDownloaderPage: React.FC = () => {
-    const [videoUrl, setVideoUrl] = useState<string>('');
-    const [downloadLink, setDownloadLink] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
-
-    const handleDownload = async () => {
+    const handleConvert = async () => {
         try {
-            setError('');
-            setLoading(true);
+            setError(null);
 
-            // Call Netlify function to initiate video downloading
-            const { data } = await axios.post<DownloadResponse>('/.netlify/functions/youtubeDownloader', {
+            // Call your Netlify function with the videoUrl and outputFormat
+            const response = await axios.post('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
+                outputFormat,
             });
 
-            setDownloadLink(data.downloadLink);
-        } catch (error) {
-            console.error('Error during download:', error);
-            setError('An error occurred during the download. Please try again.');
-        } finally {
-            setLoading(false);
+            // Assuming your Netlify function returns the downloadLink
+            setDownloadLink(response.data.downloadLink);
+        } catch (err) {
+            console.error('Conversion error:', err);
+            setError('An error occurred during the conversion. Please try again.');
         }
     };
 
     return (
-        <section className="section">
-            <div className="container">
-                <h1 className="title">YouTube Downloader</h1>
-                <div className="field has-addons">
-                    <div className="control is-expanded">
-                        <input
-                            className="input"
-                            type="text"
-                            placeholder="Enter YouTube Video URL"
-                            value={videoUrl}
-                            onChange={(e) => setVideoUrl(e.target.value)}
-                        />
-                    </div>
-                    <div className="control">
-                        <button className={`button is-primary ${loading ? 'is-loading' : ''}`} onClick={handleDownload}>
-                            Download
-                        </button>
-                    </div>
-                </div>
-
-                {/* Error and Success Messages */}
-                {error && (
-                    <div className="notification is-danger">
-                        <p className="subtitle">{error}</p>
-                    </div>
-                )}
-
-                {downloadLink && (
-                    <div className="notification is-success">
-                        <p className="subtitle">Download Link:</p>
-                        <a href={downloadLink} className="button is-info" download>
-                            Download
-                        </a>
-                    </div>
-                )}
+        <div>
+            <h1>YouTube to MP3 Converter</h1>
+            <div>
+                <label>
+                    YouTube Video URL:
+                    <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+                </label>
             </div>
-        </section>
+            <div>
+                <label>
+                    Output Format:
+                    <select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value)}>
+                        <option value="mp3">MP3</option>
+                        {/* Add other format options if needed */}
+                    </select>
+                </label>
+            </div>
+            <div>
+                <button onClick={handleConvert}>Convert</button>
+            </div>
+            {downloadLink && (
+                <div>
+                    <p>Download Link:</p>
+                    <a href={downloadLink} target="_blank" rel="noopener noreferrer">
+                        {downloadLink}
+                    </a>
+                </div>
+            )}
+            {error && <div style={{ color: 'red' }}>{error}</div>}
+        </div>
     );
 };
 
-export default YTDownloaderPage;
+export default Converter;

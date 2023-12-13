@@ -1,9 +1,7 @@
-import { Handler } from '@netlify/functions';
 const fs = require('fs');
 const ytdl = require('ytdl-core');
-const mkdirp = require('mkdirp');
 
-const handler: Handler = async (event: any) => {
+const handler = async (event) => {
     try {
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
@@ -22,33 +20,29 @@ const handler: Handler = async (event: any) => {
         const videoId = info.videoDetails.videoId;
         const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
-        // Ensure the directory exists
-        await mkdirp(`./downloads/${videoId}`);
-
         // Use ytdl-core to download video as MP3
         const stream = ytdl(videoUrl, { filter: 'audioonly' });
-        stream.pipe(fs.createWriteStream(outputPath));
+        const fileStream = fs.createWriteStream(outputPath);
 
-        return new Promise((resolve, reject) => {
+        stream.pipe(fileStream);
+
+        await new Promise((resolve, reject) => {
             stream.on('end', () => {
-                resolve({
-                    statusCode: 200,
-                    body: JSON.stringify({
-                        downloadLink: outputPath,
-                    }),
-                });
+                fileStream.end();
+                resolve();
             });
 
             stream.on('error', (error) => {
-                reject({
-                    statusCode: 500,
-                    body: JSON.stringify({
-                        error: 'An error occurred during the download. Please try again.',
-                        details: error.message,
-                    }),
-                });
+                reject(error);
             });
         });
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                downloadLink: outputPath,
+            }),
+        };
     } catch (error) {
         console.error('Error during download:', error);
 
@@ -62,4 +56,4 @@ const handler: Handler = async (event: any) => {
     }
 };
 
-export { handler };
+module.exports = { handler };

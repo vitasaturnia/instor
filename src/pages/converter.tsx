@@ -1,9 +1,13 @@
-// src/DownloadPage.js
+// src/components/DownloadPage.jsx
 import React, { useState } from 'react';
 
 const DownloadPage = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const [downloadLink, setDownloadLink] = useState('');
+
+    const handleVideoUrlChange = (event) => {
+        setVideoUrl(event.target.value);
+    };
 
     const handleDownload = async () => {
         try {
@@ -31,7 +35,7 @@ const DownloadPage = () => {
             <h1>YouTube to MP3 Downloader</h1>
             <label>
                 YouTube Video URL:
-                <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+                <input type="text" value={videoUrl} onChange={handleVideoUrlChange} />
             </label>
             <button onClick={handleDownload}>Download MP3</button>
             {downloadLink && (

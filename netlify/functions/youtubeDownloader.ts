@@ -1,7 +1,8 @@
+import { Handler } from '@netlify/functions';
 const fs = require('fs');
 const ytdl = require('ytdl-core');
 
-const handler = async (event) => {
+const handler: Handler = async (event: any) => {
     try {
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
@@ -21,21 +22,8 @@ const handler = async (event) => {
         const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
         // Use ytdl-core to download video as MP3
-        const stream = ytdl(videoUrl, { filter: 'audioonly' });
-        const fileStream = fs.createWriteStream(outputPath);
-
-        stream.pipe(fileStream);
-
-        await new Promise((resolve, reject) => {
-            stream.on('end', () => {
-                fileStream.end();
-                resolve();
-            });
-
-            stream.on('error', (error) => {
-                reject(error);
-            });
-        });
+        await ytdl(videoUrl, { filter: 'audioonly' })
+            .pipe(fs.createWriteStream(outputPath));
 
         return {
             statusCode: 200,
@@ -50,10 +38,10 @@ const handler = async (event) => {
             statusCode: 500,
             body: JSON.stringify({
                 error: 'An error occurred during the download. Please try again.',
-                details: error.message,
+                details: error.message, // Include the error message for more information
             }),
         };
     }
 };
 
-module.exports = { handler };
+export { handler };

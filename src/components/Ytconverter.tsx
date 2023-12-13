@@ -22,12 +22,16 @@ const YouTubeDownloader: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            const { data } = await axios.post('/.netlify/functions/youtubeDownloader', {
+            const response = await axios.post('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
                 outputFormat,
             });
 
-            setDownloadLink(data.downloadLink);
+            if (response.status === 200) {
+                setDownloadLink(response.data.downloadLink);
+            } else {
+                setError('An error occurred during the download. Please try again.');
+            }
         } catch (error) {
             console.error('Error during download:', error);
             setError('An error occurred during the download. Please try again.');

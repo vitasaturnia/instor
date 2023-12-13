@@ -10,7 +10,6 @@ import Layout from './components/Layout';
 
 const App: React.FC = () => {
     return (
-        <>
             <AuthProvider>
                 <BrowserRouter>
                     <Layout>
@@ -24,7 +23,6 @@ const App: React.FC = () => {
                     </Layout>
                 </BrowserRouter>
             </AuthProvider>
-        </>
     );
 };
 

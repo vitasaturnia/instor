@@ -1,5 +1,6 @@
 import { Handler } from '@netlify/functions';
 import ytdl from 'ytdl-core';
+import * as fs from 'fs';
 
 const handler: Handler = async (event: any) => {
     try {
@@ -18,7 +19,7 @@ const handler: Handler = async (event: any) => {
         // Download YouTube video
         const info = await ytdl.getInfo(videoUrl);
         const videoId = info.videoDetails.videoId;
-        const outputPath = `/downloads/${videoId}/output.${outputFormat}`;
+        const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
         // Use ytdl-core to download video as MP3
         await ytdl(videoUrl, { filter: 'audioonly' })
@@ -37,6 +38,7 @@ const handler: Handler = async (event: any) => {
             statusCode: 500,
             body: JSON.stringify({
                 error: 'An error occurred during the download. Please try again.',
+                details: error.message, // Include the error message for more information
             }),
         };
     }

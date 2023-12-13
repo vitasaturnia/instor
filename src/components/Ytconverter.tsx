@@ -4,6 +4,10 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useSpring, animated } from 'react-spring';
 import axios from 'axios';
 
+interface DownloadResponse {
+    downloadLink: string;
+}
+
 const YouTubeDownloader: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,7 +26,7 @@ const YouTubeDownloader: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            const response = await axios.post('/.netlify/functions/youtubeDownloader', {
+            const response = await axios.post<DownloadResponse>('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
                 outputFormat,
             });

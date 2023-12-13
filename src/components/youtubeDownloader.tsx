@@ -29,7 +29,8 @@ const YouTubeDownloader: React.FC = () => {
             const response = await axios.post<DownloadResponse>('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
                 outputFormat,
-            });
+            } as any);
+
 
             if (response.status === 200) {
                 setDownloadLink(response.data.downloadLink);

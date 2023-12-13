@@ -1,11 +1,14 @@
+// Register.tsx
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
-interface RegisterProps {}
+interface RegisterProps {
+    toggleForm: () => void;
+}
 
-const Register: React.FC<RegisterProps> = () => {
+const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
     const { auth } = useFirebase();
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>('');
@@ -121,6 +124,12 @@ const Register: React.FC<RegisterProps> = () => {
                                     </div>
                                 </div>
                             </form>
+                            <p>
+                                Already have an account?
+                                <span onClick={toggleForm} style={{ cursor: 'pointer', marginLeft: '5px', color: 'blue' }}>
+                  Login here
+                </span>
+                            </p>
                         </div>
                     </div>
                 </div>

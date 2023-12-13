@@ -1,8 +1,7 @@
 import { Handler } from '@netlify/functions';
 import { initializeApp } from 'firebase/app';
-import { getAuth, User } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import ytdl from 'ytdl-core-discord';
+const ytdl = require('ytdl-core');
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -15,7 +14,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const storage = getStorage(app);
 
 const handler: Handler = async (event: any) => {
@@ -32,18 +30,14 @@ const handler: Handler = async (event: any) => {
             };
         }
 
-        // Download YouTube video
-        const videoInfo = await ytdl.getBasicInfo(videoUrl);
-        const videoId = videoInfo.videoDetails.videoId;
-
-        // Use ytdl-core-discord to download audio stream
-        const audioStream = ytdl(videoUrl, { quality: 'highestaudio' });
-        const buffer = await ytdl.toBuffer(audioStream);
+        // Download YouTube video using ytdl-core
+        const buffer = await ytdl.download(videoUrl, { filter: 'audioonly' });
 
         // Upload the buffer to Firebase Storage
-        const fileName = outputFormat || 'mp3'; // Default to 'mp3' if outputFormat is undefined
+        const fileName = outputFormat || 'mp3';
         const storageRef = ref(storage, `downloads/output.${fileName}`);
-        await uploadBytes(storageRef, buffer);
+        const uint8Array = new Uint8Array(buffer);
+        await uploadBytes(storageRef, uint8Array);
 
         // Get the download URL for the file
         const downloadURL = await getDownloadURL(storageRef);

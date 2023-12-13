@@ -1,6 +1,6 @@
-import { Handler } from '@netlify/functions';
-import { initializeApp } from 'firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+const { Handler } = require('@netlify/functions');
+const { initializeApp } = require('firebase/app');
+const { getStorage, ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 const ytdl = require('ytdl-core');
 
 // Initialize Firebase
@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-const handler: Handler = async (event: any) => {
+const handler = async (event) => {
     try {
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
@@ -31,12 +31,18 @@ const handler: Handler = async (event: any) => {
         }
 
         // Download YouTube video using ytdl-core
-        const buffer = await ytdl.download(videoUrl, { filter: 'audioonly' });
+        const videoInfo = await ytdl.getInfo(videoUrl);
+
+        // Use ytdl-core to download audio stream
+        const buffer = await ytdl.downloadFromInfo(videoInfo, { filter: 'audioonly' });
 
         // Upload the buffer to Firebase Storage
         const fileName = outputFormat || 'mp3';
         const storageRef = ref(storage, `downloads/output.${fileName}`);
+
+        // Convert the Buffer to Uint8Array
         const uint8Array = new Uint8Array(buffer);
+
         await uploadBytes(storageRef, uint8Array);
 
         // Get the download URL for the file
@@ -61,4 +67,4 @@ const handler: Handler = async (event: any) => {
     }
 };
 
-export { handler };
+module.exports = { handler };

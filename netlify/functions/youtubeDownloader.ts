@@ -1,6 +1,7 @@
 import { Handler } from '@netlify/functions';
 const fs = require('fs');
 const ytdl = require('ytdl-core');
+const mkdirp = require('mkdirp');
 
 const handler: Handler = async (event: any) => {
     try {
@@ -21,16 +22,33 @@ const handler: Handler = async (event: any) => {
         const videoId = info.videoDetails.videoId;
         const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
-        // Use ytdl-core to download video as MP3
-        await ytdl(videoUrl, { filter: 'audioonly' })
-            .pipe(fs.createWriteStream(outputPath));
+        // Ensure the directory exists
+        await mkdirp(`./downloads/${videoId}`);
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                downloadLink: outputPath,
-            }),
-        };
+        // Use ytdl-core to download video as MP3
+        const stream = ytdl(videoUrl, { filter: 'audioonly' });
+        stream.pipe(fs.createWriteStream(outputPath));
+
+        return new Promise((resolve, reject) => {
+            stream.on('end', () => {
+                resolve({
+                    statusCode: 200,
+                    body: JSON.stringify({
+                        downloadLink: outputPath,
+                    }),
+                });
+            });
+
+            stream.on('error', (error) => {
+                reject({
+                    statusCode: 500,
+                    body: JSON.stringify({
+                        error: 'An error occurred during the download. Please try again.',
+                        details: error.message,
+                    }),
+                });
+            });
+        });
     } catch (error) {
         console.error('Error during download:', error);
 
@@ -38,7 +56,7 @@ const handler: Handler = async (event: any) => {
             statusCode: 500,
             body: JSON.stringify({
                 error: 'An error occurred during the download. Please try again.',
-                details: error.message, // Include the error message for more information
+                details: error.message,
             }),
         };
     }

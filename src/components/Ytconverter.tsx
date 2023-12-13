@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useSpring, animated } from 'react-spring';
 import axios from 'axios';
@@ -25,14 +24,10 @@ const YouTubeDownloader: React.FC = () => {
 
             const { data } = await axios.post('/.netlify/functions/youtubeDownloader', {
                 videoUrl,
-            });
-
-            const conversionResponse = await axios.post('/.netlify/functions/videoConverter', {
-                videoId: data.videoId,
                 outputFormat,
             });
 
-            setDownloadLink(conversionResponse.data.downloadLink);
+            setDownloadLink(data.downloadLink);
         } catch (error) {
             console.error('Error during download:', error);
             setError('An error occurred during the download. Please try again.');

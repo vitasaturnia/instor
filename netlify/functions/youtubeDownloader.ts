@@ -1,23 +1,45 @@
-// youtubeDownloader.tsx
-const ytdl = require('ytdl-core');
+import { Handler } from '@netlify/functions';
+import ytdl from 'ytdl-core';
+import fs from 'fs';
 
-exports.handler = async function (event, context) {
+const handler: Handler = async (event, context) => {
     try {
-        const { videoUrl } = JSON.parse(event.body);
+        const { videoUrl, outputFormat } = JSON.parse(event.body);
 
+        // Validate YouTube URL
+        if (!ytdl.validateURL(videoUrl)) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Invalid YouTube URL',
+                }),
+            };
+        }
+
+        // Download YouTube video
         const info = await ytdl.getInfo(videoUrl);
         const videoId = info.videoDetails.videoId;
+        const outputPath = `/downloads/${videoId}/output.${outputFormat}`;
+
+        await ytdl(videoUrl, { quality: 'highest' })
+            .pipe(fs.createWriteStream(outputPath));
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ videoId }),
+            body: JSON.stringify({
+                downloadLink: outputPath,
+            }),
         };
     } catch (error) {
-        console.error('Error in youtubeDownloader:', error);
+        console.error('Error during download:', error);
 
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Server Error' }),
+            body: JSON.stringify({
+                error: 'An error occurred during the download. Please try again.',
+            }),
         };
     }
 };
+
+export { handler };

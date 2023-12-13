@@ -17,11 +17,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-export const FirebaseContext = createContext<FirebaseContextProps>({ auth: getAuth(app) });
+export const FirebaseContext = createContext<FirebaseContextProps>({ auth });
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return <FirebaseContext.Provider value={{ auth: getAuth(app) }}>{children}</FirebaseContext.Provider>;
+    return <FirebaseContext.Provider value={{ auth }}>{children}</FirebaseContext.Provider>;
 };
 
 export const useFirebase = () => {

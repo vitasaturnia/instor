@@ -1,19 +1,20 @@
 // AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useFirebase } from '../context/firebaseContext';
+import { useFirebase } from './firebaseContext';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 interface AuthContextValue {
-    user: firebase.User | null;
+    user: User | null;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { auth } = useFirebase();
-    const [user, setUser] = useState<firebase.User | null>(null);
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
         });
 

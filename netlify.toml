@@ -1,0 +1,6 @@
+[build]
+  command = "npm install && npm run build"
+  environment = { FORCE_LEGACY_PEER_DEPS = "1" }
+
+[functions]
+  directory = "netlify/functions"

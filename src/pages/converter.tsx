@@ -1,63 +1,49 @@
-// converter.tsx
+// src/DownloadPage.js
 import React, { useState } from 'react';
-import axios from 'axios';
 
-const Converter: React.FC = () => {
+const DownloadPage = () => {
     const [videoUrl, setVideoUrl] = useState('');
-    const [outputFormat, setOutputFormat] = useState('mp3');
-    const [downloadLink, setDownloadLink] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [downloadLink, setDownloadLink] = useState('');
 
-    const handleConvert = async () => {
+    const handleDownload = async () => {
         try {
-            setError(null);
-
-            // Call your Netlify function with the videoUrl and outputFormat
-            const response = await axios.post('/.netlify/functions/youtubeDownloader', {
-                videoUrl,
-                outputFormat,
+            const response = await fetch('/.netlify/functions/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ videoUrl }),
             });
 
-            // Assuming your Netlify function returns the downloadLink
-            setDownloadLink(response.data.downloadLink);
-        } catch (err) {
-            console.error('Conversion error:', err);
-            setError('An error occurred during the conversion. Please try again.');
+            if (response.ok) {
+                const result = await response.json();
+                setDownloadLink(result.downloadLink);
+            } else {
+                console.error('Failed to fetch download link');
+            }
+        } catch (error) {
+            console.error('Error fetching download link:', error);
         }
     };
 
     return (
         <div>
-            <h1>YouTube to MP3 Converter</h1>
-            <div>
-                <label>
-                    YouTube Video URL:
-                    <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
-                </label>
-            </div>
-            <div>
-                <label>
-                    Output Format:
-                    <select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value)}>
-                        <option value="mp3">MP3</option>
-                        {/* Add other format options if needed */}
-                    </select>
-                </label>
-            </div>
-            <div>
-                <button onClick={handleConvert}>Convert</button>
-            </div>
+            <h1>YouTube to MP3 Downloader</h1>
+            <label>
+                YouTube Video URL:
+                <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+            </label>
+            <button onClick={handleDownload}>Download MP3</button>
             {downloadLink && (
                 <div>
                     <p>Download Link:</p>
-                    <a href={downloadLink} target="_blank" rel="noopener noreferrer">
-                        {downloadLink}
+                    <a href={downloadLink} download>
+                        Download MP3
                     </a>
                 </div>
             )}
-            {error && <div style={{ color: 'red' }}>{error}</div>}
         </div>
     );
 };
 
-export default Converter;
+export default DownloadPage;

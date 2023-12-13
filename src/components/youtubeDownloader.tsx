@@ -1,76 +1,70 @@
-// components/VideoDownloader.js
-import React, { useState } from 'react';
-import axios from 'axios';
+import { Handler } from '@netlify/functions';
+import { initializeApp } from 'firebase/app';
+import { getAuth, User } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import ytdl from 'ytdl-core-discord';
 
-const VideoDownloader = () => {
-    const [videoUrl, setVideoUrl] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [downloadLink, setDownloadLink] = useState('');
-
-    const handleDownload = async () => {
-        if (!videoUrl) {
-            setError('Please enter a YouTube video URL');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setError('');
-            setDownloadLink('');
-
-            const response = await axios.post(
-                process.env.REACT_APP_FIREBASE_FUNCTION_URL,
-                { videoUrl }
-            );
-
-            setDownloadLink(response.data.downloadUrl);
-        } catch (err) {
-            console.error('Error:', err);
-            setError('An error occurred during the download process');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <section className="section">
-            <div className="container">
-                <h1 className="title">YouTube Downloader</h1>
-                <div className="field has-addons">
-                    <div className="control is-expanded">
-                        <input
-                            className="input"
-                            type="text"
-                            value={videoUrl}
-                            onChange={(e) => setVideoUrl(e.target.value)}
-                        />
-                    </div>
-                    <div className="control">
-                        <button className={`button is-primary ${loading ? 'is-loading' : ''}`} onClick={handleDownload}>
-                            Download
-                        </button>
-                    </div>
-                </div>
-
-                {/* Error and Success Messages */}
-                {error && (
-                    <div className="notification is-danger">
-                        <p className="subtitle">{error}</p>
-                    </div>
-                )}
-
-                {downloadLink && (
-                    <div className="notification is-success">
-                        <p className="subtitle">Download Link:</p>
-                        <a href={downloadLink} className="button is-info" download>
-                            Download
-                        </a>
-                    </div>
-                )}
-            </div>
-        </section>
-    );
+// Initialize Firebase
+const firebaseConfig = {
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-export default VideoDownloader;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+const handler: Handler = async (event: any) => {
+    try {
+        const { videoUrl, outputFormat } = JSON.parse(event.body);
+
+        // Validate YouTube URL
+        if (!ytdl.validateURL(videoUrl)) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Invalid YouTube URL',
+                }),
+            };
+        }
+
+        // Download YouTube video
+        const videoInfo = await ytdl.getBasicInfo(videoUrl);
+        const videoId = videoInfo.videoDetails.videoId;
+
+        // Use ytdl-core-discord to download audio stream
+        const audioStream = ytdl(videoUrl, { quality: 'highestaudio' });
+        const buffer = await ytdl.toBuffer(audioStream);
+
+        // Upload the buffer to Firebase Storage
+        const fileName = outputFormat || 'mp3'; // Default to 'mp3' if outputFormat is undefined
+        const storageRef = ref(storage, `downloads/output.${fileName}`);
+        await uploadBytes(storageRef, buffer);
+
+        // Get the download URL for the file
+        const downloadURL = await getDownloadURL(storageRef);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                downloadLink: downloadURL,
+            }),
+        };
+    } catch (error) {
+        console.error('Error during download:', error);
+
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: 'An error occurred during the download. Please try again.',
+                details: error.message,
+            }),
+        };
+    }
+};
+
+export { handler };

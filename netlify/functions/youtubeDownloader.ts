@@ -37,7 +37,8 @@ const handler: Handler = async (event: any) => {
         // Upload the buffer to Firebase Storage
         console.log('Output Format:', outputFormat);
 
-        const storageRef = ref(storage, `downloads/output.${outputFormat}`);
+        const fileName = outputFormat || 'mp3'; // Default to 'mp3' if outputFormat is undefined
+        const storageRef = ref(storage, `downloads/output.${fileName}`);
         await uploadBytes(storageRef, buffer);
 
         // Get the download URL for the file

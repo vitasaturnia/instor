@@ -43,10 +43,6 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
-                    <a className="navbar-item" href="/">
-                        Home
-                    </a>
-
 
                     <a className="navbar-item" href="/converter">
                         Youtube Converter

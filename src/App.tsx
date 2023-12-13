@@ -15,7 +15,7 @@ const App: React.FC = () => {
                     <Layout>
                         <Routes>
                             <Route path="/" element={<Index />} />
-                            <Route path="/converter" element={<Converter />} />
+                            <Route path="/ytconverter" element={<Converter />} />
                             <Route path="/contact" element={<Contact />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />

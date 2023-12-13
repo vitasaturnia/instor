@@ -1,6 +1,6 @@
 import { Handler } from '@netlify/functions';
-const fs = require('fs');
-const ytdl = require('ytdl-core');
+import fs from 'fs';
+import ytdl from 'ytdl-core';
 
 const handler: Handler = async (event: any) => {
     try {
@@ -22,8 +22,15 @@ const handler: Handler = async (event: any) => {
         const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
         // Use ytdl-core to download video as MP3
-        await ytdl(videoUrl, { filter: 'audioonly' })
-            .pipe(fs.createWriteStream(outputPath));
+        const videoStream = ytdl(videoUrl, { filter: 'audioonly' });
+        const fileStream = fs.createWriteStream(outputPath);
+
+        videoStream.pipe(fileStream);
+
+        await new Promise((resolve, reject) => {
+            videoStream.on('end', resolve);
+            videoStream.on('error', reject);
+        });
 
         return {
             statusCode: 200,

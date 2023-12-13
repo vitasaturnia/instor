@@ -1,8 +1,8 @@
 import { Handler } from '@netlify/functions';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, User } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import ytdl, { downloadFromInfo, chooseFormat } from 'ytdl-core';
+import ytdl from 'ytdl-core-discord';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -33,23 +33,12 @@ const handler: Handler = async (event: any) => {
         }
 
         // Download YouTube video
-        const info = await ytdl.getInfo(videoUrl);
-        const videoId = info.videoDetails.videoId;
+        const videoInfo = await ytdl.getBasicInfo(videoUrl);
+        const videoId = videoInfo.videoDetails.videoId;
 
-        // Use ytdl-core to download video as MP3
-        const videoStream = ytdl(videoUrl, { filter: 'audioonly' });
-        const chunks: Uint8Array[] = [];
-
-        videoStream.on('data', (chunk) => {
-            chunks.push(new Uint8Array(chunk));
-        });
-
-        await new Promise((resolve, reject) => {
-            videoStream.on('end', () => resolve());
-            videoStream.on('error', reject);
-        });
-
-        const buffer = Buffer.concat(chunks);
+        // Use ytdl-core-discord to download audio stream
+        const audioStream = ytdl(videoUrl, { quality: 'highestaudio' });
+        const buffer = await ytdl.toBuffer(audioStream);
 
         // Upload the buffer to Firebase Storage
         const fileName = outputFormat || 'mp3'; // Default to 'mp3' if outputFormat is undefined

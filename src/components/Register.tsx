@@ -51,9 +51,69 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                     <div className="columns is-centered">
                         <div className="column is-5-tablet is-4-desktop is-3-widescreen">
                             <form onSubmit={handleRegister} className="box">
-                                {/* ... */}
-                                {/* Your form fields and error/success messages */}
-                                {/* ... */}
+                                <div className="field">
+                                    <label htmlFor="email" className="label">
+                                        Email
+                                    </label>
+                                    <div className="control">
+                                        <input
+                                            className="input"
+                                            type="email"
+                                            id="email"
+                                            placeholder="Your email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="field">
+                                    <label htmlFor="password" className="label">
+                                        Password
+                                    </label>
+                                    <div className="control">
+                                        <input
+                                            className="input"
+                                            type="password"
+                                            id="password"
+                                            placeholder="Your password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="field">
+                                    <label htmlFor="confirmPassword" className="label">
+                                        Confirm Password
+                                    </label>
+                                    <div className="control">
+                                        <input
+                                            className="input"
+                                            type="password"
+                                            id="confirmPassword"
+                                            placeholder="Confirm your password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="notification is-danger">
+                                        <p className="subtitle">{error}</p>
+                                    </div>
+                                )}
+
+                                {successMessage && (
+                                    <div className="notification is-success">
+                                        <p className="subtitle">{successMessage}</p>
+                                    </div>
+                                )}
+
                                 <div className="field">
                                     <div className="control">
                                         <button type="submit" className="button is-primary">
@@ -68,8 +128,8 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                                     onClick={toggleForm}
                                     style={{ cursor: 'pointer', marginLeft: '5px', color: 'blue' }}
                                 >
-                  Login here
-                </span>
+                                    Login here
+                                </span>
                             </p>
                         </div>
                     </div>

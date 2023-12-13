@@ -1,3 +1,4 @@
+// functions/download.js
 const ytdl = require('ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
@@ -13,7 +14,7 @@ exports.handler = async function (event, context) {
             downloadLink: `/downloads/${info.videoDetails.title}.mp3`,
         };
 
-        const outputPath = path.resolve('.netlify/functions/downloads', `${info.videoDetails.title}.mp3`);
+        const outputPath = path.resolve('public/downloads', `${info.videoDetails.title}.mp3`);
 
         await new Promise((resolve, reject) => {
             ytdl(videoUrl, { format: videoFormat })

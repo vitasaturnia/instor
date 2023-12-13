@@ -1,6 +1,12 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import dotenv from 'dotenv';
+
+// Load dotenv configuration based on NODE_ENV
+dotenv.config({
+    path: `.env.${process.env.NODE_ENV}`,
+});
 
 const rootElement = document.getElementById('root');
 

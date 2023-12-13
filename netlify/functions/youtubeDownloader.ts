@@ -2,7 +2,7 @@ import { Handler } from '@netlify/functions';
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import ytdl from 'ytdl-core';
+import ytdl, { downloadFromInfo, chooseFormat } from 'ytdl-core';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -22,21 +22,36 @@ const handler: Handler = async (event: any) => {
     try {
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
-        // Your other code...
+        // Validate YouTube URL
+        if (!ytdl.validateURL(videoUrl)) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Invalid YouTube URL',
+                }),
+            };
+        }
+
+        // Download YouTube video
+        const info = await ytdl.getInfo(videoUrl);
+        const videoId = info.videoDetails.videoId;
 
         // Use ytdl-core to download video as MP3
         const videoStream = ytdl(videoUrl, { filter: 'audioonly' });
-
-        // Convert the stream to a buffer
         const chunks: Uint8Array[] = [];
-        for await (const chunk of videoStream) {
-            chunks.push(chunk);
-        }
+
+        videoStream.on('data', (chunk) => {
+            chunks.push(new Uint8Array(chunk));
+        });
+
+        await new Promise((resolve, reject) => {
+            videoStream.on('end', () => resolve());
+            videoStream.on('error', reject);
+        });
+
         const buffer = Buffer.concat(chunks);
 
         // Upload the buffer to Firebase Storage
-        console.log('Output Format:', outputFormat);
-
         const fileName = outputFormat || 'mp3'; // Default to 'mp3' if outputFormat is undefined
         const storageRef = ref(storage, `downloads/output.${fileName}`);
         await uploadBytes(storageRef, buffer);

@@ -1,22 +1,108 @@
-const { Handler } = require('@netlify/functions');
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL } = require('firebase/storage');
-const ytdl = require('ytdl-core');
+import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useSpring, animated } from 'react-spring';
+import axios from 'axios';
 
-// Initialize Firebase
-const firebaseConfig = {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.REACT_APP_FIREBASE_APP_ID,
+interface DownloadResponse {
+    downloadLink: string;
+}
+
+const YouTubeDownloader: React.FC = () => {
+    const [videoUrl, setVideoUrl] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [downloadLink, setDownloadLink] = useState('');
+    const [outputFormat, setOutputFormat] = useState<'mp3' | 'mp4' | 'aac' | 'ogg' | 'flac' | 'wav'>('mp3');
+    const [error, setError] = useState<string | null>(null);
+
+    const loaderAnimation = useSpring({
+        opacity: loading ? 1 : 0,
+        from: { opacity: 0 },
+        reset: loading,
+    });
+
+    const handleDownload = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await axios.post<DownloadResponse>('/.netlify/functions/youtubeDownloader', {
+                videoUrl,
+                outputFormat,
+            });
+
+            if (response.status === 200) {
+                setDownloadLink(response.data.downloadLink);
+            } else {
+                setError('An error occurred during the download. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during download:', error);
+            setError('An error occurred during the download. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div id="youtubeDownloader" className={`box ${outputFormat === 'mp3' ? 'is-light' : ''}`}>
+            <h1>YouTube Downloader</h1>
+            <input
+                type="text"
+                placeholder="Enter YouTube Video URL"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+            />
+            <button onClick={handleDownload} disabled={loading}>
+                {loading ? (
+                    <FontAwesomeIcon icon={faSpinner} spin />
+                ) : (
+                    'Download'
+                )}
+            </button>
+
+            {error && (
+                <div className="notification is-danger">
+                    {error}
+                </div>
+            )}
+
+            {downloadLink && (
+                <div>
+                    <p className="download-link">
+                        Download Link: <a href={downloadLink} download>Download {outputFormat.toUpperCase()}</a>
+                    </p>
+                </div>
+            )}
+
+            <div className="loader">
+                <animated.div style={loaderAnimation}>&nbsp;</animated.div>
+            </div>
+
+            <div className="output-options">
+                {['mp3', 'mp4', 'aac', 'ogg', 'flac', 'wav'].map((format) => (
+                    <label key={format}>
+                        <input
+                            type="radio"
+                            name="outputFormat"
+                            value={format}
+                            checked={outputFormat === format}
+                            onChange={() => setOutputFormat(format as typeof outputFormat)}
+                        />
+                        <span>{format.toUpperCase()}</span>
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
 };
 
-const app = initializeApp(firebaseConfig);
-const storage = getStorage(app);
+export default YouTubeDownloader;
+import { Handler } from '@netlify/functions';
+const fs = require('fs');
+const ytdl = require('ytdl-core');
 
-const handler = async (event) => {
+const handler: Handler = async (event: any) => {
     try {
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
@@ -30,28 +116,19 @@ const handler = async (event) => {
             };
         }
 
-        // Download YouTube video using ytdl-core
-        const videoInfo = await ytdl.getInfo(videoUrl);
+        // Download YouTube video
+        const info = await ytdl.getInfo(videoUrl);
+        const videoId = info.videoDetails.videoId;
+        const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
 
-        // Use ytdl-core to download audio stream
-        const buffer = await ytdl.downloadFromInfo(videoInfo, { filter: 'audioonly' });
-
-        // Upload the buffer to Firebase Storage
-        const fileName = outputFormat || 'mp3';
-        const storageRef = ref(storage, `downloads/output.${fileName}`);
-
-        // Convert the Buffer to Uint8Array
-        const uint8Array = new Uint8Array(buffer);
-
-        await uploadBytes(storageRef, uint8Array);
-
-        // Get the download URL for the file
-        const downloadURL = await getDownloadURL(storageRef);
+        // Use ytdl-core to download video as MP3
+        await ytdl(videoUrl, { filter: 'audioonly' })
+            .pipe(fs.createWriteStream(outputPath));
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                downloadLink: downloadURL,
+                downloadLink: outputPath,
             }),
         };
     } catch (error) {
@@ -61,10 +138,10 @@ const handler = async (event) => {
             statusCode: 500,
             body: JSON.stringify({
                 error: 'An error occurred during the download. Please try again.',
-                details: error.message,
+                details: error.message, // Include the error message for more information
             }),
         };
     }
 };
 
-module.exports = { handler };
+export { handler };

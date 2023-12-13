@@ -2,6 +2,7 @@
 import React from 'react';
 import DarkModeToggler from './DarkModeToggler';
 import Logo from '../assets/img/pac.png';
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
     darkMode: boolean;
@@ -28,8 +29,8 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                     aria-expanded="false"
                     data-target="navBar"
                     onClick={() => {
-                        var burger = document.querySelector('.burger');
-                        var nav = document.querySelector('#navBar');
+                        const burger = document.querySelector('.burger');
+                        const nav = document.querySelector('#navBar');
                         burger?.classList.toggle('is-active');
                         nav?.classList.toggle('is-active');
                     }}
@@ -62,9 +63,9 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
                     <div className="navbar-item">
                         <div className="buttons">
-                            <a className={`button ${darkMode ? 'is-light' : 'is-dark'}`} href="/app/src/pages/login">
+                            <Link to="/login" className={`button ${darkMode ? 'is-light' : 'is-dark'}`}>
                                 Log in
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>

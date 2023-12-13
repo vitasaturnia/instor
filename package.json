@@ -2,6 +2,7 @@
   "name": "Bomba",
   "version": "1.0.0",
   "description": "Bomba music through your speakers",
+  "homepage": "/",
   "main": "index.js",
   "scripts": {
     "start": "react-scripts start",

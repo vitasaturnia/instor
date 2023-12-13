@@ -1,42 +1,54 @@
-// videoConverter.ts
 import { Handler } from '@netlify/functions';
-import { convertToMp3, convertToMp4, convertToAac, convertToOgg, convertToFlac, convertToWav } from './yourConversionLibrary';  // Replace with your actual conversion library
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+import ytdl from 'ytdl-core';
 
 const handler: Handler = async (event, context) => {
     try {
-        const { videoId, outputFormat } = JSON.parse(event.body);
+        const { videoUrl, outputFormat } = JSON.parse(event.body);
 
-        let downloadLink;
-
-        switch (outputFormat) {
-            case 'mp3':
-                downloadLink = await convertToMp3(videoId);
-                break;
-            case 'mp4':
-                downloadLink = await convertToMp4(videoId);
-                break;
-            case 'aac':
-                downloadLink = await convertToAac(videoId);
-                break;
-            case 'ogg':
-                downloadLink = await convertToOgg(videoId);
-                break;
-            case 'flac':
-                downloadLink = await convertToFlac(videoId);
-                break;
-            case 'wav':
-                downloadLink = await convertToWav(videoId);
-                break;
-            // Add more cases for additional formats
-
-            default:
-                throw new Error('Invalid output format');
+        // Validate YouTube URL
+        if (!ytdl.validateURL(videoUrl)) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Invalid YouTube URL',
+                }),
+            };
         }
+
+        // Set a unique ID for this conversion
+        const conversionId = context.clientContext.custom.netlify.conversionId;
+
+        // Set the output directory in Netlify
+        const outputPath = `/downloads/${conversionId}/output.${outputFormat}`;
+
+        await new Promise((resolve, reject) => {
+            // Download YouTube video
+            const videoStream = ytdl(videoUrl, { quality: 'highestvideo' });
+
+            // Convert and save the video
+            ffmpeg(videoStream)
+                .toFormat(outputFormat)
+                .on('end', () => {
+                    console.log('Conversion finished');
+
+                    // Save download link to a file
+                    fs.writeFileSync(`./public/downloads/${conversionId}.txt`, outputPath);
+
+                    resolve();
+                })
+                .on('error', (err) => {
+                    console.error('Error during conversion:', err);
+                    reject(err);
+                })
+                .save(outputPath);
+        });
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                downloadLink,
+                conversionId,
             }),
         };
     } catch (error) {

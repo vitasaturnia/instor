@@ -1,6 +1,5 @@
 import { Handler } from '@netlify/functions';
 import ytdl from 'ytdl-core';
-import fs from 'fs';
 
 const handler: Handler = async (event: any) => {
     try {

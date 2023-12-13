@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Index from './pages/index';
-import Converter from './pages/ytconverter';
+import Converter from './pages/converter';
 import Contact from './pages/contact';
 import Login from './pages/login';
 import Register from './pages/register';
@@ -15,7 +15,7 @@ const App: React.FC = () => {
                     <Layout>
                         <Routes>
                             <Route path="/" element={<Index />} />
-                            <Route path="/ytconverter" element={<Converter />} />
+                            <Route path="/converter" element={<Converter />} />
                             <Route path="/contact" element={<Contact />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />

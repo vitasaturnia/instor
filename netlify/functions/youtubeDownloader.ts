@@ -4,6 +4,18 @@ import ytdl from 'ytdl-core';
 
 const handler: Handler = async (event: any) => {
     try {
+        console.log('Function called with event:', event);
+
+        // Check if the event body is empty or not a valid JSON
+        if (!event.body) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Invalid request body',
+                }),
+            };
+        }
+
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
         // Validate YouTube URL
@@ -28,9 +40,11 @@ const handler: Handler = async (event: any) => {
         videoStream.pipe(fileStream);
 
         await new Promise((resolve, reject) => {
-            videoStream.on('end', resolve);
-            videoStream.on('error', reject);
+            fileStream.on('finish', resolve);
+            fileStream.on('error', reject);
         });
+
+        console.log('Download successful. File saved at:', outputPath);
 
         return {
             statusCode: 200,

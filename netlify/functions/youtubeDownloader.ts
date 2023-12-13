@@ -35,6 +35,8 @@ const handler: Handler = async (event: any) => {
         const buffer = Buffer.concat(chunks);
 
         // Upload the buffer to Firebase Storage
+        console.log('Output Format:', outputFormat);
+
         const storageRef = ref(storage, `downloads/output.${outputFormat}`);
         await uploadBytes(storageRef, buffer);
 

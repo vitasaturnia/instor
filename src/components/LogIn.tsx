@@ -1,4 +1,3 @@
-// Login.tsx
 import React, { useState, FormEvent } from 'react';
 import { useFirebase } from '../context/firebaseContext';
 import { signInWithEmailAndPassword } from 'firebase/auth';

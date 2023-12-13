@@ -44,12 +44,12 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
 
-                    <a className="navbar-item" href="/converter">
+                    <Link to="/converter" className="navbar-item">
                         Youtube Converter
-                    </a>
-                    <a className="navbar-item" href="/contact">
+                    </Link>
+                    <Link to="/contact" className="navbar-item">
                         Contact
-                    </a>
+                    </Link>
                 </div>
 
                 <div className="navbar-end">

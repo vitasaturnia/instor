@@ -8,19 +8,12 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "types": ["firebase", "react", "react-dom", "node"],
-
-
-
-
-    /* Bundler mode */
     "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
     "jsx": "react",
-
-    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

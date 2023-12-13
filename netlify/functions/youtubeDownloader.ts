@@ -1,54 +1,50 @@
 import { Handler } from '@netlify/functions';
-const ytdl = require('ytdl-core');
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import ytdl from 'ytdl-core';
+
+// Initialize Firebase
+const firebaseConfig = {
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.REACT_APP_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const storage = getStorage(app);
 
 const handler: Handler = async (event: any) => {
     try {
-        console.log('Function called with event:', event);
-
-        // Check if the event body is empty or not a valid JSON
-        if (!event.body) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({
-                    error: 'Invalid request body',
-                }),
-            };
-        }
-
         const { videoUrl, outputFormat } = JSON.parse(event.body);
 
-        // Validate YouTube URL
-        if (!ytdl.validateURL(videoUrl)) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({
-                    error: 'Invalid YouTube URL',
-                }),
-            };
-        }
-
-        // Download YouTube video
-        const info = await ytdl.getInfo(videoUrl);
-        const videoId = info.videoDetails.videoId;
-        const outputPath = `./downloads/${videoId}/output.${outputFormat}`;
+        // Your other code...
 
         // Use ytdl-core to download video as MP3
         const videoStream = ytdl(videoUrl, { filter: 'audioonly' });
-        const fileStream = fs.createWriteStream(outputPath);
 
-        videoStream.pipe(fileStream);
+        // Convert the stream to a buffer
+        const chunks: Uint8Array[] = [];
+        for await (const chunk of videoStream) {
+            chunks.push(chunk);
+        }
+        const buffer = Buffer.concat(chunks);
 
-        await new Promise((resolve, reject) => {
-            fileStream.on('finish', resolve);
-            fileStream.on('error', reject);
-        });
+        // Upload the buffer to Firebase Storage
+        const storageRef = ref(storage, `downloads/output.${outputFormat}`);
+        await uploadBytes(storageRef, buffer);
 
-        console.log('Download successful. File saved at:', outputPath);
+        // Get the download URL for the file
+        const downloadURL = await getDownloadURL(storageRef);
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                downloadLink: outputPath,
+                downloadLink: downloadURL,
             }),
         };
     } catch (error) {
@@ -58,7 +54,7 @@ const handler: Handler = async (event: any) => {
             statusCode: 500,
             body: JSON.stringify({
                 error: 'An error occurred during the download. Please try again.',
-                details: error.message, // Include the error message for more information
+                details: error.message,
             }),
         };
     }

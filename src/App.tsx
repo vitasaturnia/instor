@@ -15,7 +15,7 @@ const App: React.FC = () => {
                 <BrowserRouter>
                     <Layout>
                         <Routes>
-                            <Route path="/#" element={<Index />} />
+                            <Route path="/" element={<Index />} />
                             <Route path="/converter" element={<Converter />} />
                             <Route path="/contact" element={<Contact />} />
                             <Route path="/login" element={<Login />} />

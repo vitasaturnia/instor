@@ -1,5 +1,8 @@
+// Login.tsx
 import React, { useState, FormEvent } from 'react';
 import { useFirebase } from '../context/firebaseContext';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Link } from 'react-router-dom';
 
 interface LoginProps {}
 
@@ -7,15 +10,18 @@ const Login: React.FC<LoginProps> = () => {
     const { auth } = useFirebase();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [rememberMe, setRememberMe] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
+
         try {
-            await auth.signInWithEmailAndPassword(email, password);
+            setError(null);
+            await signInWithEmailAndPassword(auth, email, password);
+            // Optional: Handle successful login, navigate or perform other actions
         } catch (error) {
             console.error('Login error:', error.message);
-            // Handle error and display to the user
+            setError('Login failed. Please check your credentials and try again.');
         }
     };
 
@@ -30,55 +36,54 @@ const Login: React.FC<LoginProps> = () => {
                                     <label htmlFor="email" className="label">
                                         Email
                                     </label>
-                                    <div className="control has-icons-left">
+                                    <div className="control">
                                         <input
+                                            className="input"
                                             type="email"
                                             id="email"
-                                            placeholder="e.g. bobsmith@gmail.com"
-                                            className="input"
+                                            placeholder="Your email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
                                         />
-                                        <span className="icon is-small is-left">
-                      <i className="fa fa-envelope"></i>
-                    </span>
                                     </div>
                                 </div>
+
                                 <div className="field">
                                     <label htmlFor="password" className="label">
                                         Password
                                     </label>
-                                    <div className="control has-icons-left">
+                                    <div className="control">
                                         <input
+                                            className="input"
                                             type="password"
                                             id="password"
-                                            placeholder="*******"
-                                            className="input"
+                                            placeholder="Your password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                         />
-                                        <span className="icon is-small is-left">
-                      <i className="fa fa-lock"></i>
-                    </span>
                                     </div>
                                 </div>
+
+                                {error && (
+                                    <div className="notification is-danger">
+                                        <p className="subtitle">{error}</p>
+                                    </div>
+                                )}
+
                                 <div className="field">
-                                    <label htmlFor="rememberMe" className="checkbox">
-                                        <input
-                                            type="checkbox"
-                                            id="rememberMe"
-                                            checked={rememberMe}
-                                            onChange={() => setRememberMe(!rememberMe)}
-                                        />
-                                        Remember me
-                                    </label>
+                                    <div className="control">
+                                        <button type="submit" className="button is-primary">
+                                            Login
+                                        </button>
+                                    </div>
                                 </div>
+
                                 <div className="field">
-                                    <button type="submit" className="button is-success">
-                                        Login
-                                    </button>
+                                    <p className="has-text-grey">
+                                        <Link to="/forgot-password">Forgot Password?</Link>
+                                    </p>
                                 </div>
                             </form>
                         </div>

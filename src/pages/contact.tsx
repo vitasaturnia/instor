@@ -1,7 +1,8 @@
+import React from 'react';
 import ContactForm from '../components/ContactForm';
 import Newsletter from '../components/Newsletter';
 
-const ContactUsPage = () => {
+const ContactPage = () => {
     return (
         <section className="section">
             <div className="container">
@@ -21,4 +22,4 @@ const ContactUsPage = () => {
     );
 };
 
-export default ContactUsPage;
+export default ContactPage;

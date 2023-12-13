@@ -48,7 +48,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                     </a>
 
 
-                    <a className="navbar-item" href="/converter">
+                    <a className="navbar-item" href="/ytconverter">
                         Youtube Converter
                     </a>
                 </div>

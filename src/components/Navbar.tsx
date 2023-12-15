@@ -1,8 +1,10 @@
-// Navbar.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useFirebase } from '../context/firebaseContext';
 import DarkModeToggler from './DarkModeToggler';
 import Logo from '../assets/img/popeye.png';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
 
 interface NavbarProps {
     darkMode: boolean;
@@ -10,19 +12,37 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
+    const { auth } = useFirebase();
+    const [user, setUser] = useState(auth.currentUser);
+
+    const handleLogout = async () => {
+        try {
+            await auth.signOut();
+            // Optionally: You can navigate to another page or show a success message after signing out
+        } catch (error) {
+            console.error('Sign out error:', error.message);
+            // Handle sign out error
+        }
+    };
+
+    useEffect(() => {
+        // Update user state on component mount
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+
+        // Clean up the subscription when the component unmounts
+        return () => unsubscribe();
+    }, [auth]);
+
     return (
         <nav className={`navbar ${darkMode ? 'is-dark' : 'is-light'}`} role="navigation" aria-label="main navigation">
             <div className="navbar-brand">
-                <a className="navbar-item" href="/">
-                    <img
-                        src={Logo}
-                        alt="Logo"
-                        width="112"
-                        height="28"
-                    />
-                </a>
+                <Link to="/" className="navbar-item">
+                    <img src={Logo} alt="Logo" width="112" height="28" />
+                </Link>
 
-                <a
+                <div
                     role="button"
                     className="navbar-burger burger"
                     aria-label="menu"
@@ -38,12 +58,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
-                </a>
+                </div>
             </div>
 
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
-
                     <Link to="/listings" className="navbar-item">
                         Listings
                     </Link>
@@ -63,11 +82,27 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                         <DarkModeToggler darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
                     </div>
 
+                    {user ? (
+                        <div className="navbar-item">
+                            <Link to="/profile" className={`button ${darkMode ? 'is-light' : 'is-dark'}`}>
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={faUser} />
+                                </span>
+                            </Link>
+                        </div>
+                    ) : null}
+
                     <div className="navbar-item">
                         <div className="buttons">
-                            <Link to="/login" className={`button ${darkMode ? 'is-light' : 'is-dark'}`}>
-                                Log in
-                            </Link>
+                            {user ? (
+                                <button onClick={handleLogout} className={`button ${darkMode ? 'is-light' : 'is-dark'}`}>
+                                    Logout
+                                </button>
+                            ) : (
+                                <Link to="/login" className={`button ${darkMode ? 'is-light' : 'is-dark'}`}>
+                                    Log in
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

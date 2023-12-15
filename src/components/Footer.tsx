@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
     return (
         <footer className="footer has-background-dark has-text-white">
             <div className="content has-text-centered">
-                <h1 className="title is-size-3 has-text-white">Your Music Hub</h1>
+                <h1 className="title is-size-3 has-text-white">International Steroid Organization</h1>
                 <div className="footer-links mt-4">
                     <Link to="/" className="footer-link">
                         Home
@@ -32,7 +32,7 @@ const Footer: React.FC = () => {
                     </a>
                 </div>
                 <p className="subtitle is-size-6 has-text-grey-light mt-4">
-                    © 2023 Bomba Music. All rights reserved.
+                    © 2023 Instor. All rights reserved.
                 </p>
             </div>
         </footer>

@@ -1,7 +1,7 @@
 // Navbar.tsx
 import React from 'react';
 import DarkModeToggler from './DarkModeToggler';
-import Logo from '../assets/img/pac.png';
+import Logo from '../assets/img/popeye.png';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {
@@ -44,8 +44,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
 
-                    <Link to="/converter" className="navbar-item">
-                        Youtube Converter
+                    <Link to="/listing" className="navbar-item">
+                        Listing
+                    </Link>
+                    <Link to="/listing" className="navbar-item">
+                        About
                     </Link>
                     <Link to="/contact" className="navbar-item">
                         Contact

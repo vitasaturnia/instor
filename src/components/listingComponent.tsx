@@ -1,6 +1,7 @@
 // ListingLogic.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useFirebase } from '../context/firebaseContext';
+import { collection, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const ListingLogic: React.FC = () => {
     const { auth, db } = useFirebase();
@@ -11,24 +12,11 @@ const ListingLogic: React.FC = () => {
     const [validationError, setValidationError] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            // Fetch data logic (actual logic needed)
-        } catch (error) {
-            console.error('Error fetching data:', error.message);
-            setError('Error fetching data. Please try again.');
-        }
-    };
-
     const handleCreateOrUpdateListing = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.listingName) {
-            setValidationError('Listing Name is required.');
+        if (!formData.listingName || !formData.listingDomain) {
+            setValidationError('Listing Name and Domain are required.');
             return;
         }
 
@@ -39,7 +27,6 @@ const ListingLogic: React.FC = () => {
             setFormData({ listingName: '', listingDomain: '' });
             setEditMode(false);
             setSelectedListingId(null);
-            fetchData();
             setSuccessMessage(editMode ? 'Listing updated successfully!' : 'Listing created successfully!');
             setValidationError(null);
         } catch (error) {
@@ -48,25 +35,112 @@ const ListingLogic: React.FC = () => {
         }
     };
 
-    const createListingInFirebase = async (listingData: DocumentData) => {
-        const userUid = auth.currentUser?.uid;
-        const listingCollection = collection(db, 'Listings');
-        await addDoc(listingCollection, { ...listingData, createdBy: userUid, createdOn: new Date() });
+    const createListingInFirebase = async (listingData: any) => {
+        try {
+            const userUid = auth.currentUser?.uid;
+            const listingCollection = collection(db, 'Listings');
+            await addDoc(listingCollection, {
+                ...listingData,
+                createdBy: userUid,
+                createdOn: new Date(),
+            });
+        } catch (error) {
+            throw new Error('Error creating listing: ' + error.message);
+        }
     };
 
-    const updateListingInFirebase = async (listingId: string, listingData: DocumentData) => {
-        const listingDocRef = doc(collection(db, 'Listings'), listingId);
-        await updateDoc(listingDocRef, { ...listingData, updatedOn: new Date() });
+    const updateListingInFirebase = async (listingId: string, listingData: any) => {
+        try {
+            const listingDocRef = collection(db, 'Listings', listingId);
+            await updateDoc(listingDocRef, {
+                ...listingData,
+                updatedOn: new Date(),
+            });
+        } catch (error) {
+            throw new Error('Error updating listing: ' + error.message);
+        }
     };
 
-    // ... (other functions)
+    const deleteListingInFirebase = async (listingId: string) => {
+        try {
+            const listingDocRef = collection(db, 'Listings', listingId);
+            await deleteDoc(listingDocRef);
+        } catch (error) {
+            throw new Error('Error deleting listing: ' + error.message);
+        }
+    };
+
+    const handleEditListing = (listing: any) => {
+        setEditMode(true);
+        setSelectedListingId(listing.id);
+        setFormData({ listingName: listing.listingName, listingDomain: listing.listingDomain });
+    };
+
+    const handleDeleteListing = async (listingId: string) => {
+        try {
+            await deleteListingInFirebase(listingId);
+            setSuccessMessage('Listing deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting listing:', error.message);
+            setError('Error deleting listing. Please try again.');
+        }
+    };
 
     return (
         <div>
-            {error && <div className="error-message">{error}</div>}
+            {error && <div className="notification is-danger">{error}</div>}
+            {successMessage && <div className="notification is-success">{successMessage}</div>}
+            {validationError && <div className="notification is-danger">{validationError}</div>}
 
-            {/* Render the form for creating or updating listings */}
-            {/* ... */}
+            <form onSubmit={handleCreateOrUpdateListing}>
+                <div className="field">
+                    <label className="label">Listing Name</label>
+                    <div className="control">
+                        <input
+                            className={`input ${validationError ? 'is-danger' : ''}`}
+                            type="text"
+                            placeholder="Enter Listing Name"
+                            value={formData.listingName}
+                            onChange={(e) => setFormData({ ...formData, listingName: e.target.value })}
+                        />
+                    </div>
+                    {validationError && <p className="help is-danger">{validationError}</p>}
+                </div>
+
+                <div className="field">
+                    <label className="label">Listing Domain</label>
+                    <div className="control">
+                        <input
+                            className="input"
+                            type="text"
+                            placeholder="Enter Listing Domain"
+                            value={formData.listingDomain}
+                            onChange={(e) => setFormData({ ...formData, listingDomain: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div className="field is-grouped">
+                    <div className="control">
+                        <button type="submit" className={`button ${editMode ? 'is-warning' : 'is-primary'}`}>
+                            {editMode ? 'Update Listing' : 'Create Listing'}
+                        </button>
+                    </div>
+                    {editMode && (
+                        <div className="control">
+                            <button
+                                type="button"
+                                className="button is-danger"
+                                onClick={() => {
+                                    handleDeleteListing(selectedListingId!);
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </form>
         </div>
     );
 };

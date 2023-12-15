@@ -44,8 +44,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
 
-                    <Link to="/listing" className="navbar-item">
-                        Listing
+                    <Link to="/listings" className="navbar-item">
+                        Listings
+                    </Link>
+                    <Link to="/newlisting" className="navbar-item">
+                        New Listing
                     </Link>
                     <Link to="/listing" className="navbar-item">
                         About

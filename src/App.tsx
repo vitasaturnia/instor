@@ -6,7 +6,8 @@ import Contact from './pages/contact';
 import Login from './pages/login';
 import Register from './pages/register';
 import About from './pages/about';
-import Listing from './pages/listing';
+import Listings from './pages/listings.tsx';
+import NewListing from './pages/newlisting.tsx';
 
 import Layout from './components/Layout';
 
@@ -21,7 +22,8 @@ const App: React.FC = () => {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
                             <Route path="/about" element={<About />} />
-                            <Route path="/listing" element={<Listing />} />
+                            <Route path="/listings" element={<Listings />} />
+                            <Route path="/newlisting" element={<NewListing />} />
 
 
                         </Routes>

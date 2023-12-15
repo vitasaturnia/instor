@@ -1,6 +1,5 @@
-// Register.tsx
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -123,13 +122,10 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                                 </div>
                             </form>
                             <p>
-                                Already have an account?
-                                <span
-                                    onClick={toggleForm}
-                                    style={{ cursor: 'pointer', marginLeft: '5px', color: 'blue' }}
-                                >
+                                Already have an account?{' '}
+                                <Link to="/login" className="has-text-info">
                                     Login here
-                                </span>
+                                </Link>
                             </p>
                         </div>
                     </div>

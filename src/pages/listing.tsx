@@ -1,5 +1,7 @@
 import React from 'react';
 import ListingComponent from '../components/listingComponent';
+import listingFetcher from '../components/listingFetcher';
+
 
 const ListingPage = () => {
   return (

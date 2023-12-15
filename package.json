@@ -27,7 +27,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-router-dom": "^6.20.1",
+    "react-router-dom": "^6.21.0",
     "react-scripts": "^5.0.1",
     "react-spring": "^9.7.3",
     "sass": "^1.69.5",

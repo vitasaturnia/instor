@@ -1,57 +1,67 @@
-// ListingComponent.jsx
-
+// ListingComponent.tsx
 import React, { useState, useEffect } from 'react';
 import { useFirebase } from '../context/firebaseContext';
+import {
+    collection,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    DocumentData,
+    DocumentReference,
+} from 'firebase/firestore';
 
-const ListingComponent = () => {
-    const { auth, createListing, updateListing, deleteListing } = useFirebase();
-    const [userListings, setUserListings] = useState([]);
-    const [allListings, setAllListings] = useState([]);
-    const [formData, setFormData] = useState({
-        listingName: '',
-        listingDomain: '',
-        // Add other fields as needed
-    });
+interface ListingData {
+    id: string;
+    listingName: string;
+    listingDomain: string;
+    createdBy: string;
+}
+
+const ListingComponent: React.FC = () => {
+    const { auth, db } = useFirebase();
+    const [userListings, setUserListings] = useState<ListingData[]>([]);
+    const [allListings, setAllListings] = useState<ListingData[]>([]);
+    const [formData, setFormData] = useState({ listingName: '', listingDomain: '' });
     const [editMode, setEditMode] = useState(false);
-    const [selectedListingId, setSelectedListingId] = useState(null);
+    const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const userSpecificListings = await fetchUserListingsFromFirebase();
-                setUserListings(userSpecificListings);
-
-                const allListingsData = await fetchAllListingsFromFirebase();
-                setAllListings(allListingsData);
-
-                setLoading(false);
-            } catch (error) {
-                setError(error.message);
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, []);
 
+    const fetchData = async () => {
+        try {
+            setUserListings(await fetchUserListingsFromFirebase());
+            setAllListings(await fetchAllListingsFromFirebase());
+            setLoading(false);
+        } catch (error) {
+            setError(error.message);
+            setLoading(false);
+        }
+    };
+
     const fetchUserListingsFromFirebase = async () => {
-        // Implement this function to fetch user-specific listings from Firebase
-        // e.g., using Firebase Firestore
-        // Return a list of user-specific listings
+        const userUid = auth.currentUser?.uid;
+        const userListingCollection = collection(db, 'Listings');
+        const userListingSnapshot = await getDocs(userListingCollection);
+        return userListingSnapshot.docs
+            .map((doc) => ({ id: doc.id, ...doc.data() } as ListingData))
+            .filter((listing) => listing.createdBy === userUid);
     };
 
     const fetchAllListingsFromFirebase = async () => {
-        // Implement this function to fetch all listings from Firebase
-        // e.g., using Firebase Firestore
-        // Return a list of all listings
+        const allListingCollection = collection(db, 'Listings');
+        const allListingSnapshot = await getDocs(allListingCollection);
+        return allListingSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as ListingData));
     };
 
-    const handleCreateOrUpdateListing = async (e) => {
+    const handleCreateOrUpdateListing = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.listingName) {
             setValidationError('Listing Name is required.');
@@ -59,16 +69,13 @@ const ListingComponent = () => {
         }
 
         try {
-            if (editMode) {
-                await updateListing(selectedListingId, formData);
-            } else {
-                await createListing(formData);
-            }
+            if (editMode) await updateListingInFirebase(selectedListingId!, formData);
+            else await createListingInFirebase(formData);
+
             setFormData({ listingName: '', listingDomain: '' });
             setEditMode(false);
             setSelectedListingId(null);
-            fetchUserListings();
-            fetchAllListings();
+            await fetchData();
             setSuccessMessage(editMode ? 'Listing updated successfully!' : 'Listing created successfully!');
             setValidationError(null);
         } catch (error) {
@@ -77,7 +84,18 @@ const ListingComponent = () => {
         }
     };
 
-    const handleDeleteListing = async (listingId) => {
+    const createListingInFirebase = async (listingData: DocumentData) => {
+        const userUid = auth.currentUser?.uid;
+        const listingCollection = collection(db, 'Listings');
+        await addDoc(listingCollection, { ...listingData, createdBy: userUid, createdOn: new Date() });
+    };
+
+    const updateListingInFirebase = async (listingId: string, listingData: DocumentData) => {
+        const listingDocRef = doc(collection(db, 'Listings'), listingId);
+        await updateDoc(listingDocRef, { ...listingData, updatedOn: new Date() });
+    };
+
+    const handleDeleteListing = async (listingId: string) => {
         try {
             setShowDeleteConfirmation(true);
             setSelectedListingId(listingId);
@@ -89,10 +107,9 @@ const ListingComponent = () => {
 
     const confirmDeleteListing = async () => {
         try {
-            await deleteListing(selectedListingId);
+            await deleteListingInFirebase(selectedListingId!);
             setShowDeleteConfirmation(false);
-            fetchUserListings();
-            fetchAllListings();
+            await fetchData();
             setSuccessMessage('Listing deleted successfully!');
         } catch (error) {
             console.error('Error deleting listing:', error.message);
@@ -100,17 +117,18 @@ const ListingComponent = () => {
         }
     };
 
+    const deleteListingInFirebase = async (listingId: string) => {
+        const listingDocRef = doc(collection(db, 'Listings'), listingId);
+        await deleteDoc(listingDocRef);
+    };
+
     const cancelDeleteListing = () => {
         setShowDeleteConfirmation(false);
         setSelectedListingId(null);
     };
 
-    const handleEditListing = (listing) => {
-        setFormData({
-            listingName: listing.listingName,
-            listingDomain: listing.listingDomain,
-            // Add other fields as needed
-        });
+    const handleEditListing = (listing: ListingData) => {
+        setFormData({ listingName: listing.listingName, listingDomain: listing.listingDomain });
         setEditMode(true);
         setSelectedListingId(listing.id);
     };
@@ -128,46 +146,30 @@ const ListingComponent = () => {
 
             <h2>Your Listings</h2>
             {loading ? (
+                <ul>{Array.from({ length: 3 }).map((_, index) => <li key={index}><div className="loading-skeleton"></div></li>)}</ul>
+            ) : (
                 <ul>
-                    {[1, 2, 3].map((index) => (
-                        <li key={index}>
-                            <div className="loading-skeleton"></div>
+                    {userListings.length === 0 ? <p>There is nothing here yet.</p> : userListings.map((listing) => (
+                        <li key={listing.id}>
+                            {listing.listingName} - {listing.listingDomain}{' '}
+                            <button onClick={() => handleEditListing(listing)}>Edit</button>
+                            <button onClick={() => handleDeleteListing(listing.id)}>Delete</button>
                         </li>
                     ))}
                 </ul>
-            ) : (
-                <>
-                    <ul>
-                        {userListings.map((listing) => (
-                            <li key={listing.id}>
-                                {listing.listingName} - {listing.listingDomain}{' '}
-                                <button onClick={() => handleEditListing(listing)}>Edit</button>
-                                <button onClick={() => handleDeleteListing(listing.id)}>Delete</button>
-                            </li>
-                        ))}
-                    </ul>
-                </>
             )}
 
             <h2>All Listings</h2>
             {loading ? (
+                <ul>{Array.from({ length: 3 }).map((_, index) => <li key={index}><div className="loading-skeleton"></div></li>)}</ul>
+            ) : (
                 <ul>
-                    {[1, 2, 3].map((index) => (
-                        <li key={index}>
-                            <div className="loading-skeleton"></div>
+                    {allListings.length === 0 ? <p>There is nothing here yet.</p> : allListings.map((listing) => (
+                        <li key={listing.id}>
+                            {listing.listingName} - {listing.listingDomain}
                         </li>
                     ))}
                 </ul>
-            ) : (
-                <>
-                    <ul>
-                        {allListings.map((listing) => (
-                            <li key={listing.id}>
-                                {listing.listingName} - {listing.listingDomain}
-                            </li>
-                        ))}
-                    </ul>
-                </>
             )}
 
             <h2>Create/Update Listing</h2>

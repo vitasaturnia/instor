@@ -1,15 +1,8 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
-import { createUserWithEmailAndPassword, Auth } from 'firebase/auth';
-import {
-    doc,
-    setDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-} from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 interface RegisterProps {
     toggleForm: () => void;
@@ -77,11 +70,7 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
             }
 
             // Register the user using Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             // Registration successful, now set the UID as the document ID for the user
@@ -91,9 +80,6 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                 username,
                 // Add other user profile fields here
             });
-
-            // Send a confirmation email (optional)
-            // await sendEmailVerification(user);
 
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => navigate('/login'), 2000);

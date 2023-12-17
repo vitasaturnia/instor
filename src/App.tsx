@@ -38,7 +38,7 @@ const App: React.FC = () => {
                             <Route path="/chat" element={<Chat />} />
                             <Route path="/privacy" element={<Privacy />} />
                             <Route path="/fakeornatty" element={<FakeOrNatty />} />
-                            <Route path="/:inbox" element={<Inbox />} />
+                            <Route path="/inbox" element={<Inbox />} />
 
                             <Route path="/:username" element={<ProfilePage />} />
 

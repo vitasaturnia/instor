@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useFirebase } from '../context/firebaseContext.tsx';
-import { useAuth } from '../context/AuthContext.tsx';
+import { useFirebase } from '../context/firebaseContext';
+import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const NewMessage = () => {
@@ -20,14 +20,14 @@ const NewMessage = () => {
         }
         try {
             await addDoc(collection(db, 'messages'), {
-                sender: user?.email, // or any identifier you prefer
-                receiver,
+                senderId: user?.uid,
+                receiverId: receiver,
                 content: message,
                 timestamp: serverTimestamp(),
             });
             setConfirmation('Message sent successfully');
             setMessage('');
-            setError(null); // Clear any previous errors on success
+            setError(null);
         } catch (err) {
             setError('Error sending message');
             console.error(err);

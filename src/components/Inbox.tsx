@@ -13,9 +13,10 @@ import {
 
 interface Message {
     id: string;
-    sender: string;
+    senderId: string;
+    receiverId: string;
     content: string;
-    timestamp: any; // Update with the actual timestamp type
+    timestamp: any;
 }
 
 const Inbox: React.FC = () => {
@@ -39,20 +40,18 @@ const Inbox: React.FC = () => {
                 const messagesRef = collection(db, 'messages');
                 const q = query(
                     messagesRef,
-                    where('receiver', '==', currentUserId),
+                    where('receiverId', '==', currentUserId),
                     orderBy('timestamp', 'desc')
                 );
 
                 const unsubscribe = onSnapshot(q, (snapshot) => {
-                    const data: Message[] = [];
-                    snapshot.docs.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-                        data.push({
-                            id: doc.id,
-                            sender: doc.data().sender,
-                            content: doc.data().content,
-                            timestamp: doc.data().timestamp, // Update with the actual field name
-                        });
-                    });
+                    const data: Message[] = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+                        id: doc.id,
+                        senderId: doc.data().senderId,
+                        receiverId: doc.data().receiverId,
+                        content: doc.data().content,
+                        timestamp: doc.data().timestamp,
+                    }));
                     setMessages(data);
                     setLoading(false);
                 });
@@ -93,7 +92,7 @@ const Inbox: React.FC = () => {
                                         className={selectedMessage === message.id ? 'selected' : ''}
                                         onClick={() => handleSelectMessage(message.id)}
                                     >
-                                        {message.sender}
+                                        {message.senderId} {/* Display sender's UID */}
                                     </li>
                                 ))}
                             </ul>
@@ -105,7 +104,7 @@ const Inbox: React.FC = () => {
                         <div className="box">
                             <h2 className="title is-4">Message Content</h2>
                             <div>
-                                <strong>Sender:</strong> {messages.find((msg) => msg.id === selectedMessage)?.sender}
+                                <strong>Sender:</strong> {messages.find((msg) => msg.id === selectedMessage)?.senderId} {/* Display sender's UID */}
                             </div>
                             <div>
                                 <strong>Message:</strong> {messages.find((msg) => msg.id === selectedMessage)?.content}

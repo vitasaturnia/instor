@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
 const Profile = () => {
-    const { user } = useAuth();
+    const { user, username } = useAuth();
     const { db, storage } = useFirebase();
     const [displayName, setDisplayName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -140,8 +140,13 @@ const Profile = () => {
             <form onSubmit={handleUpdateProfile} className="box">
                 {/* Display Name, Email, Bio, Region Fields */}
                 <div className="field">
-                    <label className="label">Display Name</label>
-                    <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                    <label className="label">Username</label>
+                    <input
+                        className="input"
+                        type="text"
+                        value={username || ''}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
                 </div>
                 <div className="field">
                     <label className="label">Email</label>

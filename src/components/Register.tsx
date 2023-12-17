@@ -1,137 +1,98 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
-interface RegisterProps {
-    toggleForm: () => void;
-}
-
-const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
-    const { auth } = useFirebase();
+const Register = () => {
+    const { auth, db } = useFirebase();
     const navigate = useNavigate();
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [confirmPassword, setConfirmPassword] = useState<string>('');
-    const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-    useEffect(() => {
-        const successMessageTimeout = setTimeout(() => {
-            setSuccessMessage(null);
-        }, 3000);
-
-        return () => clearTimeout(successMessageTimeout);
-    }, [successMessage]);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [error, setError] = useState('');
 
     const handleRegister = async (e: FormEvent) => {
         e.preventDefault();
-
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
         }
 
         try {
-            setError(null);
-            await createUserWithEmailAndPassword(auth, email, password);
-            setSuccessMessage('Registration successful! Redirecting to login...');
-            setTimeout(() => navigate('/login'), 2000);
+            setError('');
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            await setDoc(doc(db, "users", user.uid), {
+                username,
+                email,
+            });
+
+            navigate('/login');
         } catch (error) {
-            console.error('Registration error:', error.message);
             setError('Registration failed. Please try again.');
         }
     };
 
     return (
-        <section className="hero is-primary is-fullheight">
-            <div className="hero-body">
-                <div className="container">
-                    <div className="columns is-centered">
-                        <div className="column is-5-tablet is-4-desktop is-3-widescreen">
-                            <form onSubmit={handleRegister} className="box">
-                                <div className="field">
-                                    <label htmlFor="email" className="label">
-                                        Email
-                                    </label>
-                                    <div className="control">
-                                        <input
-                                            className="input"
-                                            type="email"
-                                            id="email"
-                                            placeholder="Your email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </div>
+        <div className="register-container">
+            <form onSubmit={handleRegister}>
+                <h2>Register</h2>
+                {error && <div className="error">{error}</div>}
 
-                                <div className="field">
-                                    <label htmlFor="password" className="label">
-                                        Password
-                                    </label>
-                                    <div className="control">
-                                        <input
-                                            className="input"
-                                            type="password"
-                                            id="password"
-                                            placeholder="Your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="field">
-                                    <label htmlFor="confirmPassword" className="label">
-                                        Confirm Password
-                                    </label>
-                                    <div className="control">
-                                        <input
-                                            className="input"
-                                            type="password"
-                                            id="confirmPassword"
-                                            placeholder="Confirm your password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                {error && (
-                                    <div className="notification is-danger">
-                                        <p className="subtitle">{error}</p>
-                                    </div>
-                                )}
-
-                                {successMessage && (
-                                    <div className="notification is-success">
-                                        <p className="subtitle">{successMessage}</p>
-                                    </div>
-                                )}
-
-                                <div className="field">
-                                    <div className="control">
-                                        <button type="submit" className="button is-primary">
-                                            Register
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                            <p>
-                                Already have an account?{' '}
-                                <Link to="/login" className="has-text-info">
-                                    Login here
-                                </Link>
-                            </p>
-                        </div>
-                    </div>
+                <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
                 </div>
-            </div>
-        </section>
+
+                <div className="form-group">
+                    <label htmlFor="username">Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <button type="submit">Register</button>
+                <p>
+                    Already have an account?{' '}
+                    <Link to="/login">Login here</Link>
+                </p>
+            </form>
+        </div>
     );
 };
 

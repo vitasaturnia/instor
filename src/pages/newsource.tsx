@@ -1,6 +1,6 @@
 // ListingPage.tsx
 import React from 'react';
-import ListingLogic from '../components/listingComponent.tsx';
+import SourceLogic from '../components/sourcesComponent.tsx';
 
 const NewListingPage: React.FC = () => {
     return (
@@ -9,9 +9,9 @@ const NewListingPage: React.FC = () => {
                 <div className="columns is-centered">
                     <div className="column is-half">
                         <div className="has-text-centered">
-                            <h1 className="title">Listing Page</h1>
+                            <h1 className="title">New Source</h1>
                         </div>
-                        <ListingLogic />
+                        <SourceLogic/>
                     </div>
                 </div>
             </div>

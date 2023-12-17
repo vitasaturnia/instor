@@ -63,13 +63,19 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
             <div id="navBar" className="navbar-menu">
                 <div className="navbar-start">
-                    <Link to="/listings" className="navbar-item">
-                        Listings
+                    <Link to="/sources" className="navbar-item">
+                        Sources
                     </Link>
-                    <Link to="/newlisting" className="navbar-item">
-                        New Listing
+                    <Link to="/newsource" className="navbar-item">
+                        New Source
                     </Link>
-                    <Link to="/listing" className="navbar-item">
+                    <Link to="/reviews" className="navbar-item">
+                        Reviews
+                    </Link>
+                    <Link to="/newreview" className="navbar-item">
+                        New Review
+                    </Link>
+                    <Link to="/about" className="navbar-item">
                         About
                     </Link>
                     <Link to="/contact" className="navbar-item">

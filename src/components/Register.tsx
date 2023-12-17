@@ -1,14 +1,15 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, Auth } from 'firebase/auth';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore'; // Import Firestore functions
 
 interface RegisterProps {
     toggleForm: () => void;
 }
 
 const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
-    const { auth } = useFirebase();
+    const { auth, db } = useFirebase();
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -34,7 +35,28 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
 
         try {
             setError(null);
-            await createUserWithEmailAndPassword(auth, email, password);
+
+            // Check if the email is already registered
+            const userCollection = collection(db, 'users');
+            const emailQuery = query(userCollection, where('email', '==', email));
+            const querySnapshot = await getDocs(emailQuery);
+
+            if (!querySnapshot.empty) {
+                setError('Email is already registered.');
+                return;
+            }
+
+            // Register the user using Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Registration successful, now set the UID as the document ID for the user
+            const userDocRef = doc(db, 'users', user.uid);
+            await setDoc(userDocRef, {
+                email,
+                // Add other user profile fields here
+            });
+
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => navigate('/login'), 2000);
         } catch (error) {

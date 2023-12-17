@@ -12,6 +12,7 @@ import Reviews from './pages/reviews.tsx';
 import NewReview from './pages/newreview.tsx';
 import Profile from './pages/profile.tsx';
 import Chat from './pages/chat.tsx';
+import Privacy from './pages/privacy.tsx';
 
 import Layout from './components/Layout';
 
@@ -32,6 +33,7 @@ const App: React.FC = () => {
                             <Route path="/newreview" element={<NewReview />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/chat" element={<Chat />} />
+                            <Route path="/privacy" element={<Privacy />} />
 
 
                         </Routes>

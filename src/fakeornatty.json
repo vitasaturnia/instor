@@ -1,0 +1,8 @@
+[
+  { "name": "John", "isNatural": true },
+  { "name": "Alice", "isNatural": false },
+  { "name": "Bob", "isNatural": true },
+  { "name": "Eve", "isNatural": false },
+  { "name": "Charlie", "isNatural": true },
+  { "name": "Olivia", "isNatural": false }
+]

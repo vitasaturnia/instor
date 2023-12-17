@@ -6,16 +6,18 @@ import {
     updateEmail,
     EmailAuthProvider,
     reauthenticateWithCredential,
+    updatePassword,
 } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, getFirestore } from 'firebase/firestore';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
 const Profile = () => {
-    const { user, username } = useAuth();
+    const { user } = useAuth();
     const { db, storage } = useFirebase();
-    const [displayName, setDisplayName] = useState<string>('');
+    const firestore = getFirestore();
     const [email, setEmail] = useState<string>('');
     const [region, setRegion] = useState<string>('');
     const [newPassword, setNewPassword] = useState<string>('');
@@ -33,27 +35,33 @@ const Profile = () => {
     const [success, setSuccess] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [showBestLifts, setShowBestLifts] = useState<boolean>(false);
+    const [username, setUsername] = useState<string>('');
 
     useEffect(() => {
         if (user) {
-            setDisplayName(user.displayName || '');
-            setEmail(user.email || '');
-            setRegion(''); // Set initial value for region here if available
-            setBio(''); // Set initial value for bio here if available
-
-            // Set initial values for stats if available
-            if (user.stats) {
-                setHeight(user.stats.height || '');
-                setWeight(user.stats.weight || '');
-                setBodyFat(user.stats.bodyFat || '');
-            }
-
-            // Set initial values for bestLifts if available
-            if (user.bestLifts) {
-                setBestLifts(user.bestLifts);
-            }
+            const userDocRef = doc(db, 'users', user.uid);
+            getDoc(userDocRef)
+                .then((docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        const userData = docSnapshot.data() || {};
+                        setUsername(userData.username || ''); // Set the username state variable with the actual username
+                        setEmail(userData.email || '');
+                        setRegion(userData.region || '');
+                        setBio(userData.bio || '');
+                        setHeight(userData.stats?.height || '');
+                        setWeight(userData.stats?.weight || '');
+                        setBodyFat(userData.stats?.bodyFat || '');
+                        setBestLifts(userData.bestLifts || [{ lift: '', weight: '' }]);
+                    } else {
+                        setEmail(user.email || '');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error);
+                });
         }
-    }, [user]);
+    }, [user, db]);
+
 
     const handleUpdateProfile = async (e: FormEvent) => {
         e.preventDefault();
@@ -83,11 +91,11 @@ const Profile = () => {
                     photoURL = await getDownloadURL(storageRef);
                 }
 
-                await updateProfile(user, { displayName, photoURL });
+                await updateProfile(user, { displayName: username, photoURL });
 
                 const userDocRef = doc(db, 'users', user.uid);
                 await updateDoc(userDocRef, {
-                    displayName,
+                    username,
                     bio,
                     region,
                     stats: { height, weight, bodyFat },
@@ -138,19 +146,23 @@ const Profile = () => {
             <input type="file" ref={fileInputRef} accept="image/*" onChange={handleProfilePicChange} style={{ display: 'none' }} />
 
             <form onSubmit={handleUpdateProfile} className="box">
-                {/* Display Name, Email, Bio, Region Fields */}
                 <div className="field">
                     <label className="label">Username</label>
                     <input
                         className="input"
                         type="text"
-                        value={username || ''}
+                        value={username}
                         onChange={(e) => setUsername(e.target.value)}
                     />
                 </div>
                 <div className="field">
                     <label className="label">Email</label>
-                    <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <input
+                        className="input"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
                 </div>
                 <div className="field">
                     <label className="label">Bio</label>
@@ -172,7 +184,6 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Stats Section */}
                 <div className="field">
                     <label className="label">Stats</label>
                     <button
@@ -214,9 +225,7 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
-                {/* End of Stats Section */}
 
-                {/* Best Lifts Section */}
                 <div className="field">
                     <label className="label">Best Lifts</label>
                     <button
@@ -258,9 +267,7 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
-                {/* End of Best Lifts Section */}
 
-                {/* Password Fields */}
                 <div className="field">
                     <label className="label">New Password</label>
                     <input className="input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext.tsx';
-import { useAuth } from '../context/AuthContext.tsx
+import { useAuth } from '../context/AuthContext.tsx';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const NewMessage = () => {
@@ -34,14 +34,23 @@ const NewMessage = () => {
     };
 
     return (
-        <div>
+        <div className="message-box">
             <form onSubmit={sendMessage}>
-                <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write your message here"
-                ></textarea>
-                <button type="submit">Send Message</button>
+                <div className="field">
+                    <div className="control">
+                        <textarea
+                            className="textarea"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Write your message here"
+                        ></textarea>
+                    </div>
+                </div>
+                <div className="field">
+                    <div className="control">
+                        <button className="button is-primary" type="submit">Send Message</button>
+                    </div>
+                </div>
             </form>
             {error && <p className="error">{error}</p>}
             {confirmation && <p className="confirmation">{confirmation}</p>}

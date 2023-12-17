@@ -2,7 +2,14 @@ import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFirebase } from '../context/firebaseContext';
 import { createUserWithEmailAndPassword, Auth } from 'firebase/auth';
-import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore'; // Import Firestore functions
+import {
+    doc,
+    setDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+} from 'firebase/firestore';
 
 interface RegisterProps {
     toggleForm: () => void;
@@ -11,10 +18,14 @@ interface RegisterProps {
 const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
     const { auth, db } = useFirebase();
     const navigate = useNavigate();
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [confirmPassword, setConfirmPassword] = useState<string>('');
+    const [userRegistration, setUserRegistration] = useState({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        username: '',
+    });
     const [error, setError] = useState<string | null>(null);
+    const [usernameError, setUsernameError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     useEffect(() => {
@@ -25,8 +36,18 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
         return () => clearTimeout(successMessageTimeout);
     }, [successMessage]);
 
+    const handleChange = (e: FormEvent<HTMLInputElement>) => {
+        const { name, value } = e.currentTarget;
+        setUserRegistration({
+            ...userRegistration,
+            [name]: value,
+        });
+    };
+
     const handleRegister = async (e: FormEvent) => {
         e.preventDefault();
+
+        const { email, password, confirmPassword, username } = userRegistration;
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
@@ -46,16 +67,33 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                 return;
             }
 
+            // Check if the username is already taken
+            const usernameQuery = query(userCollection, where('username', '==', username));
+            const usernameSnapshot = await getDocs(usernameQuery);
+
+            if (!usernameSnapshot.empty) {
+                setUsernameError('Username is already taken.');
+                return;
+            }
+
             // Register the user using Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
             const user = userCredential.user;
 
             // Registration successful, now set the UID as the document ID for the user
             const userDocRef = doc(db, 'users', user.uid);
             await setDoc(userDocRef, {
                 email,
+                username,
                 // Add other user profile fields here
             });
+
+            // Send a confirmation email (optional)
+            // await sendEmailVerification(user);
 
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => navigate('/login'), 2000);
@@ -73,6 +111,27 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                         <div className="column is-5-tablet is-4-desktop is-3-widescreen">
                             <form onSubmit={handleRegister} className="box">
                                 <div className="field">
+                                    <label htmlFor="username" className="label">
+                                        Username
+                                    </label>
+                                    <div className="control">
+                                        <input
+                                            className={`input ${usernameError ? 'is-danger' : ''}`}
+                                            type="text"
+                                            id="username"
+                                            name="username"
+                                            placeholder="Your username"
+                                            value={userRegistration.username}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+                                    {usernameError && (
+                                        <p className="help is-danger">{usernameError}</p>
+                                    )}
+                                </div>
+
+                                <div className="field">
                                     <label htmlFor="email" className="label">
                                         Email
                                     </label>
@@ -81,9 +140,10 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                                             className="input"
                                             type="email"
                                             id="email"
+                                            name="email"
                                             placeholder="Your email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            value={userRegistration.email}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -98,9 +158,10 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                                             className="input"
                                             type="password"
                                             id="password"
+                                            name="password"
                                             placeholder="Your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            value={userRegistration.password}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -115,9 +176,10 @@ const Register: React.FC<RegisterProps> = ({ toggleForm }) => {
                                             className="input"
                                             type="password"
                                             id="confirmPassword"
+                                            name="confirmPassword"
                                             placeholder="Confirm your password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            value={userRegistration.confirmPassword}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>

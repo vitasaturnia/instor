@@ -1,37 +1,80 @@
-// Inbox.tsx
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../context/firebaseContext';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    DocumentData,
+    QueryDocumentSnapshot,
+} from 'firebase/firestore';
+
+interface Message {
+    id: string;
+    sender: string;
+    content: string;
+    timestamp: any; // Update with the actual timestamp type
+}
 
 const Inbox: React.FC = () => {
     const { db } = useFirebase();
-    const [messages, setMessages] = useState([]);
-    const [selectedMessage, setSelectedMessage] = useState(null);
+    const { user } = useAuth();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchMessages = async () => {
             try {
+                if (!user || !user.uid) {
+                    setLoading(false);
+                    setError('User is not authenticated');
+                    return;
+                }
+
+                const currentUserId = user.uid;
                 const messagesRef = collection(db, 'messages');
-                const q = query(messagesRef, where('receiver', '==', 'currentUserId'), orderBy('timestamp', 'desc'));
+                const q = query(
+                    messagesRef,
+                    where('receiver', '==', currentUserId),
+                    orderBy('timestamp', 'desc')
+                );
+
                 const unsubscribe = onSnapshot(q, (snapshot) => {
-                    const data = [];
-                    snapshot.forEach((doc) => {
-                        data.push({ id: doc.id, ...doc.data() });
+                    const data: Message[] = [];
+                    snapshot.docs.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+                        data.push({
+                            id: doc.id,
+                            sender: doc.data().sender,
+                            content: doc.data().content,
+                            timestamp: doc.data().timestamp, // Update with the actual field name
+                        });
                     });
                     setMessages(data);
+                    setLoading(false);
                 });
 
                 return unsubscribe;
             } catch (error) {
+                setError('Error fetching messages');
                 console.error('Error fetching messages:', error);
+                setLoading(false);
             }
         };
 
         fetchMessages();
-    }, [db]);
+    }, [db, user]);
 
-    const handleSelectMessage = (id) => {
+    const handleSelectMessage = (id: string) => {
         setSelectedMessage(id);
+    };
+
+    const formatTimestamp = (timestamp: any) => {
+        const date = new Date(timestamp.toMillis());
+        return date.toLocaleString();
     };
 
     return (
@@ -40,17 +83,21 @@ const Inbox: React.FC = () => {
                 <div className="column is-3">
                     <div className="box">
                         <h2 className="title is-4">Messages</h2>
-                        <ul>
-                            {messages.map((message) => (
-                                <li
-                                    key={message.id}
-                                    className={selectedMessage === message.id ? 'selected' : ''}
-                                    onClick={() => handleSelectMessage(message.id)}
-                                >
-                                    {message.sender}
-                                </li>
-                            ))}
-                        </ul>
+                        {loading && <p>Loading messages...</p>}
+                        {error && <p className="has-text-danger">{error}</p>}
+                        {!loading && !error && (
+                            <ul>
+                                {messages.map((message) => (
+                                    <li
+                                        key={message.id}
+                                        className={selectedMessage === message.id ? 'selected' : ''}
+                                        onClick={() => handleSelectMessage(message.id)}
+                                    >
+                                        {message.sender}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
                 <div className="column">
@@ -58,13 +105,14 @@ const Inbox: React.FC = () => {
                         <div className="box">
                             <h2 className="title is-4">Message Content</h2>
                             <div>
-                                <strong>Sender:</strong> {messages.find((msg) => msg.id === selectedMessage).sender}
+                                <strong>Sender:</strong> {messages.find((msg) => msg.id === selectedMessage)?.sender}
                             </div>
                             <div>
-                                <strong>Message:</strong> {messages.find((msg) => msg.id === selectedMessage).content}
+                                <strong>Message:</strong> {messages.find((msg) => msg.id === selectedMessage)?.content}
                             </div>
                             <div>
-                                <strong>Timestamp:</strong> {messages.find((msg) => msg.id === selectedMessage).timestamp}
+                                <strong>Timestamp:</strong>{' '}
+                                {formatTimestamp(messages.find((msg) => msg.id === selectedMessage)?.timestamp)}
                             </div>
                         </div>
                     ) : (

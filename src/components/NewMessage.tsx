@@ -9,10 +9,10 @@ const NewMessage = () => {
     const { db } = useFirebase();
     const { user } = useAuth();
     const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [confirmation, setConfirmation] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [confirmation, setConfirmation] = useState<string | null>(null);
 
-    const sendMessage = async (e) => {
+    const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim()) {
             setError('Message cannot be empty');
@@ -27,6 +27,7 @@ const NewMessage = () => {
             });
             setConfirmation('Message sent successfully');
             setMessage('');
+            setError(null); // Clear any previous errors on success
         } catch (err) {
             setError('Error sending message');
             console.error(err);
@@ -35,14 +36,16 @@ const NewMessage = () => {
 
     return (
         <div className="message-box">
+            <h2 className="title is-4">Send a Message to {receiver}</h2>
             <form onSubmit={sendMessage}>
                 <div className="field">
                     <div className="control">
                         <textarea
-                            className="textarea"
+                            className={`textarea ${error ? 'is-danger' : ''}`}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="Write your message here"
+                            rows={4}
                         ></textarea>
                     </div>
                 </div>
@@ -52,8 +55,8 @@ const NewMessage = () => {
                     </div>
                 </div>
             </form>
-            {error && <p className="error">{error}</p>}
-            {confirmation && <p className="confirmation">{confirmation}</p>}
+            {error && <p className="help is-danger">{error}</p>}
+            {confirmation && <p className="help is-success">{confirmation}</p>}
         </div>
     );
 };

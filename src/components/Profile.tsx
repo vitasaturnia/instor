@@ -1,7 +1,7 @@
 import React, { useState, useRef, FormEvent, ChangeEvent } from 'react';
-import { useAuth } from '../context/AuthContext.tsx';
-import { useFirebase } from '../context/firebaseContext.tsx';
-import { updateProfile, updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { useAuth } from '../context/AuthContext';
+import { useFirebase } from '../context/firebaseContext';
+import { updateProfile, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +9,7 @@ import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
 const Profile = () => {
     const { user } = useAuth();
-    const { auth, db, storage } = useFirebase();
+    const { db, storage } = useFirebase();
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [email, setEmail] = useState(user?.email || '');
     const [region, setRegion] = useState('');
@@ -23,41 +23,47 @@ const Profile = () => {
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleUpdateProfile = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
+        if (newPassword && newPassword !== currentPassword) {
+            setError('Passwords do not match.');
+            return;
+        }
+
         try {
-            // Update Email
-            if (user && email !== user.email) {
-                await updateEmail(user, email);
+            if (user) {
+                // Update Email
+                if (email !== user.email) {
+                    await updateEmail(user, email);
+                }
+
+                // Update Password
+                if (newPassword) {
+                    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                    await reauthenticateWithCredential(user, credential);
+                    await updatePassword(user, newPassword);
+                }
+
+                // Update Profile Picture
+                let photoURL = user.photoURL;
+                if (profilePic) {
+                    const storageRef = ref(storage, `profile-pics/${user.uid}`);
+                    await uploadBytes(storageRef, profilePic);
+                    photoURL = await getDownloadURL(storageRef);
+                }
+
+                // Update Firebase Auth Profile
+                await updateProfile(user, { displayName, photoURL });
+
+                // Update Additional User Data in Firestore
+                const userDocRef = doc(db, "users", user.uid);
+                await updateDoc(userDocRef, { displayName, bio, region, stats: { height, weight, bodyFat } });
             }
-
-            // Update Password
-            if (newPassword && user) {
-                const credential = EmailAuthProvider.credential(user.email, currentPassword);
-                await reauthenticateWithCredential(user, credential);
-                await updatePassword(user, newPassword);
-            }
-
-            // Update Profile Picture
-            let photoURL = user?.photoURL;
-            if (profilePic && user) {
-                const storageRef = ref(storage, `profile-pics/${user.uid}`);
-                await uploadBytes(storageRef, profilePic);
-                photoURL = await getDownloadURL(storageRef);
-            }
-
-            // Update Firebase Auth Profile
-            await updateProfile(user, { displayName, photoURL });
-
-            // Update Additional User Data in Firestore
-            const userDocRef = doc(db, "users", user.uid);
-            const userData = { displayName, bio, region, stats: { height, weight, bodyFat } };
-            await updateDoc(userDocRef, userData);
 
             setSuccess('Profile updated successfully.');
         } catch (error) {
@@ -71,19 +77,19 @@ const Profile = () => {
     };
 
     const triggerFileInput = () => {
-        fileInputRef.current.click();
+        fileInputRef.current?.click();
     };
 
     const toggleStats = () => setShowStats(!showStats);
 
     return (
         <div className="container mt-5">
-            <h1 className="title">Profile</h1>
+            <h1 className="title has-text-centered">Profile</h1>
             {error && <div className="notification is-danger">{error}</div>}
             {success && <div className="notification is-success">{success}</div>}
 
             <div className="profile-pic-wrapper" onClick={triggerFileInput}>
-                <FontAwesomeIcon icon={faUserCircle} size="3x" />
+                <FontAwesomeIcon icon={faUserCircle} size="2x" className="profile-pic" />
             </div>
             <input type="file" ref={fileInputRef} accept="image/*" onChange={handleProfilePicChange} style={{ display: 'none' }} />
 
@@ -92,52 +98,54 @@ const Profile = () => {
                     <label className="label">Display Name</label>
                     <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                 </div>
-
                 <div className="field">
                     <label className="label">Email</label>
                     <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
-
-                <div className="field">
-                    <label className="label">Region</label>
-                    <input className="input" type="text" value={region} onChange={(e) => setRegion(e.target.value)} />
-                </div>
-
                 <div className="field">
                     <label className="label">Bio</label>
                     <textarea className="textarea" value={bio} onChange={(e) => setBio(e.target.value)}></textarea>
                 </div>
-
                 <div className="field">
                     <label className="label">New Password</label>
                     <input className="input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                 </div>
-
                 <div className="field">
                     <label className="label">Current Password</label>
                     <input className="input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                 </div>
-
-                <div className="button is-text" onClick={toggleStats}>Toggle Stats</div>
-                {showStats && (
-                    <div className="box">
-                        <h2 className="subtitle">Stats</h2>
+                <div className="field">
+                    <label className="label">Region</label>
+                    <div className="select">
+                        <select value={region} onChange={(e) => setRegion(e.target.value)}>
+                            <option value="">Select Region</option>
+                            <option value="North America">North America</option>
+                            <option value="Central America">Central America</option>
+                            <option value="South America">South America</option>
+                            <option value="Europe">Europe</option>
+                            <option value="Asia">Asia</option>
+                            <option value="Africa">Africa</option>
+                            <option value="Oceania">Oceania</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="field">
+                    <label className="label">Stats</label>
+                    <div className="fields">
                         <div className="field">
-                            <label className="label">Height</label>
-                            <input className="input" type="text" value={height} onChange={(e) => setHeight(e.target.value)} />
+                            <input className="input" type="text" placeholder="Height (cm)" value={height} onChange={(e) => setHeight(e.target.value)} />
                         </div>
                         <div className="field">
-                            <label className="label">Weight</label>
-                            <input className="input" type="text" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                            <input className="input" type="text" placeholder="Weight (kg)" value={weight} onChange={(e) => setWeight(e.target.value)} />
                         </div>
                         <div className="field">
-                            <label className="label">Body Fat %</label>
-                            <input className="input" type="text" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} />
+                            <input className="input" type="text" placeholder="Body Fat (%)" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} />
                         </div>
                     </div>
-                )}
-
-                <button type="submit" className="button is-primary">Update Profile</button>
+                </div>
+                <div className="buttons">
+                    <button type="submit" className="button is-primary">Update Profile</button>
+                </div>
             </form>
         </div>
     );

@@ -75,6 +75,9 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                     <Link to="/newreview" className="navbar-item">
                         New Review
                     </Link>
+                    <Link to="/chat" className="navbar-item">
+                        Chat
+                    </Link>
                     <Link to="/about" className="navbar-item">
                         About
                     </Link>

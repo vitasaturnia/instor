@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext.tsx';
 import Index from './pages/index';
 import Contact from './pages/contact';
 import Login from './pages/login';
@@ -11,6 +11,7 @@ import NewSource from './pages/newsource.tsx';
 import Reviews from './pages/reviews.tsx';
 import NewReview from './pages/newreview.tsx';
 import Profile from './pages/profile.tsx';
+import Chat from './pages/chat.tsx';
 
 import Layout from './components/Layout';
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
                             <Route path="/reviews" element={<Reviews />} />
                             <Route path="/newreview" element={<NewReview />} />
                             <Route path="/profile" element={<Profile />} />
+                            <Route path="/chat" element={<Chat />} />
 
 
                         </Routes>

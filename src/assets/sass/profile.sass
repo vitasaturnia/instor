@@ -1,28 +1,29 @@
 @import 'base'
 
-@import 'base'
-
 .profile-pic-wrapper
   display: flex
   justify-content: center
   margin-bottom: 20px
+  cursor: pointer
 
 .profile-pic
   border-radius: 50%
-  width: 150px
-  height: 150px
+  width: 2em
+  height: 2em
   object-fit: cover
+  color: #3273dc
+  &:hover
+    color: darken(#3273dc, 10%)
 
-// Add other component-specific styles here...
+.button.is-text
+  margin-right: 10px
 
 // Dark mode styles
 [data-theme='dark']
   .profile
-    // Add dark mode specific styles for your component
-    // For example, change text color, background, etc.
     color: white
     .input, .button
       border-color: white
       color: white
 
-// Continue with your existing dark mode styles...
+// Add other component-specific styles here...

@@ -1,0 +1,40 @@
+$primaryColor: #4a90e2
+$backgroundColor: #f4f7f6
+$sentMessageColor: #daf8cb
+$receivedMessageColor: #ffffff
+
+.chat-container
+  background: $backgroundColor
+  display: flex
+  flex-direction: column
+  height: calc(100vh - 7em)
+  max-width: 100%
+
+.messages-display
+  flex-grow: 1
+  overflow-y: auto
+  padding: 10px
+  .message
+    display: flex
+    margin-bottom: 10px
+    &.sent
+      justify-content: flex-end
+      .message-content
+        background-color: $sentMessageColor
+        border-radius: 15px 0 15px 15px
+    &.received
+      justify-content: flex-start
+      .message-content
+        background-color: $receivedMessageColor
+        border-radius: 0 15px 15px 15px
+
+.input-area
+  border-top: 1px solid darken($backgroundColor, 10%)
+  padding: 10px
+  .input
+    flex-grow: 1
+    margin-right: 10px
+  .button.is-primary
+    background: $primaryColor
+    &:hover
+      background: darken($primaryColor, 10%)

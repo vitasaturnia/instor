@@ -1,18 +1,24 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useFirebase } from '../context/firebaseContext';
-import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import React, { useState, useRef, FormEvent, ChangeEvent } from 'react';
+import { useAuth } from '../context/AuthContext.tsx'; // Import from AuthContext
+import { useFirebase } from '../context/firebaseContext.tsx'; // Import from FirebaseContext
+import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
 const Profile = () => {
     const { user } = useAuth();
-    const { auth, storage } = useFirebase();
+    const { auth, db, storage } = useFirebase();
     const [displayName, setDisplayName] = useState(user?.displayName || '');
-    const [newPassword, setNewPassword] = useState('');
-    const [currentPassword, setCurrentPassword] = useState('');
+    const [bio, setBio] = useState('');
+    const [height, setHeight] = useState('');
+    const [weight, setWeight] = useState('');
+    const [bodyFat, setBodyFat] = useState('');
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const fileInputRef = useRef(null);
 
     const handleUpdateProfile = async (e: FormEvent) => {
         e.preventDefault();
@@ -20,12 +26,6 @@ const Profile = () => {
         setSuccess('');
 
         try {
-            if (newPassword && user) {
-                const credential = EmailAuthProvider.credential(user.email, currentPassword);
-                await reauthenticateWithCredential(user, credential);
-                await updatePassword(user, newPassword);
-            }
-
             let photoURL = user?.photoURL;
             if (profilePic && user) {
                 const storageRef = ref(storage, `profile-pics/${user.uid}`);
@@ -33,8 +33,15 @@ const Profile = () => {
                 photoURL = await getDownloadURL(storageRef);
             }
 
-            await updateProfile(user, { displayName, photoURL });
-            setSuccess('Profile updated successfully.');
+            if (user) {
+                await updateProfile(user, { displayName, photoURL });
+
+                const userDocRef = doc(db, "users", user.uid);
+                const userData = { displayName, bio, height, weight, bodyFat };
+                await updateDoc(userDocRef, userData);
+
+                setSuccess('Profile updated successfully.');
+            }
         } catch (error) {
             setError('Failed to update profile: ' + error.message);
         }
@@ -45,48 +52,43 @@ const Profile = () => {
         setProfilePic(file);
     };
 
+    const triggerFileInput = () => {
+        fileInputRef.current.click();
+    };
+
     return (
         <div className="container mt-5">
             <h1 className="title">Profile</h1>
             {error && <div className="notification is-danger">{error}</div>}
             {success && <div className="notification is-success">{success}</div>}
+
+            <div className="profile-pic-wrapper" onClick={triggerFileInput}>
+                <FontAwesomeIcon icon={faUserCircle} size="3x" />
+            </div>
+            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleProfilePicChange} style={{ display: 'none' }} />
+
             <form onSubmit={handleUpdateProfile} className="box">
                 <div className="field">
                     <label className="label">Display Name</label>
-                    <div className="control">
-                        <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                    </div>
+                    <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                 </div>
-
                 <div className="field">
-                    <label className="label">New Password</label>
-                    <div className="control">
-                        <input className="input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                    </div>
+                    <label className="label">Bio</label>
+                    <textarea className="textarea" value={bio} onChange={(e) => setBio(e.target.value)}></textarea>
                 </div>
-
                 <div className="field">
-                    <label className="label">Current Password</label>
-                    <div className="control">
-                        <input className="input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-                    </div>
+                    <label className="label">Height</label>
+                    <input className="input" type="text" value={height} onChange={(e) => setHeight(e.target.value)} />
                 </div>
-
                 <div className="field">
-                    <label className="label">Profile Picture</label>
-                    <div className="file">
-                        <label className="file-label">
-                            <input className="file-input" type="file" accept="image/*" onChange={handleProfilePicChange} />
-                            <span className="file-cta">
-                                <span className="file-label">Choose a file…</span>
-                            </span>
-                        </label>
-                    </div>
+                    <label className="label">Weight</label>
+                    <input className="input" type="text" value={weight} onChange={(e) => setWeight(e.target.value)} />
                 </div>
-
-                <div className="control">
-                    <button type="submit" className="button is-primary">Update Profile</button>
+                <div className="field">
+                    <label className="label">Body Fat %</label>
+                    <input className="input" type="text" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} />
                 </div>
+                <button type="submit" className="button is-primary">Update Profile</button>
             </form>
         </div>
     );

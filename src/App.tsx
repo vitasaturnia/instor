@@ -15,6 +15,7 @@ import Chat from './pages/chat.tsx';
 import Privacy from './pages/privacy.tsx';
 import FakeOrNatty from './pages/fakeornatty.tsx';
 import ProfilePage from './components/ProfilePage.tsx';
+import Inbox from './components/Inbox.tsx';
 
 import Layout from './components/Layout';
 
@@ -37,6 +38,8 @@ const App: React.FC = () => {
                             <Route path="/chat" element={<Chat />} />
                             <Route path="/privacy" element={<Privacy />} />
                             <Route path="/fakeornatty" element={<FakeOrNatty />} />
+                            <Route path="/:inbox" element={<Inbox />} />
+
                             <Route path="/:username" element={<ProfilePage />} />
 
 
